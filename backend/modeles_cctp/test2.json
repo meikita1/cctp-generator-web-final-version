@@ -1,0 +1,65 @@
+[
+  {
+    "nomTypologie": "JBB – Joint Bord à Bord",
+    "sections": [
+      {
+        "contenu": "DTU 39\nCahier des charges CEKAL VEC\nFiche technique n°24 édité par le SNFA",
+        "titre": "Références",
+        "isGenerating": false
+      },
+      {
+        "contenu": "Joint bord à bord : double mastic silicone sur fond de joint préformé (au-dessus du joint de scellement)\n\nÉtanchéité : double barrière avec lame d’air ventilée et drainée vers la feuillure périphérique\n\nJoints périphériques : silicone, assurant continuité entre joints extrudés et préformés\n\nIndice d'humidité : i ≤ 0,1 (mastic de scellement)\n\nFaçonnage : tranches et chants en JPI\n\nZones visibles à travers vitrage : à traiter (sinon opacification ou sérigraphie silicone)\n\nColoris joints & intercalaires : au choix du Maître d’Œuvre",
+        "titre": "Généralités"
+      },
+      {
+        "contenu": "Système d’étanchéité / drainage / aération : conforme à un Avis Technique du fournisseur\n\nPrise en feuillure continue (capots serreurs) :\n\nÉtanchéité assurée par serrage de joints EPDM noirs (profilés extrudés)\n\nSystème à double barrière avec drainage vers l’extérieur\n\nGarnitures d’étanchéité :\n\nIntérieure :\n\nVerticale filante, horizontale découpée à dimension\n\nFixée via boutons d’isolation + bande butyle en U\n\nLèvre horizontale pour drainage + protection des chants\n\nPlan d’étanchéité fermé (alignement horizontal/vertical)\n\nExtérieure :\n\nVerticale filante, horizontale découpée\n\nClippage dans les gorges des capots serreurs\n\nPoints sensibles : croix, T, angles → étanchéité par pâte spéciale\n\nFeuillures : systématiquement drainées, ventilées, équilibrage de pression\n\nRaccords traverse/montant : drainage en cascade sauf mention contraire\n\nJoints : élasticité adaptée aux déformations et dilatations de l’ossature",
+        "titre": "Étanchéité courante"
+      },
+      {
+        "contenu": "Cornière métallique : anti-effraction + support pour raccord pierre agrafée\n\nMembrane étanche : pincée entre béton et cornière, prise en feuillure dans le mur rideau, fixée sur béton\n\nProfilés en U : fixés au GO avec double joint compressible (type Illmod), reçoivent les panneaux opaques\n\nIsolation complémentaire : laine minérale\n\nPare-vapeur : en continuité avec l’isolation\n\nCornière filante intérieure : pour raccord avec finitions (coordination avec lots en interface)",
+        "titre": "Étanchéité périphérique de raccord au G.O"
+      }
+    ]
+  },
+  {
+    "nomTypologie": "MR - Système mur rideau type grille",
+    "sections": [
+      {
+        "contenu": "Selon DTU 33.1\nSelon NF EN 13830",
+        "titre": "Références"
+      },
+      {
+        "contenu": "Mur rideau acier (PRS) – Rdc à R+1 – Vitrine principale – Antieffraction P5A / RC2\nPierre agrafée – Rdc à R+2 – Trumeaux & casquette – Façade avenue des Champs Élysées\nEncadrement – Ossature GO – Pas de classement feu précisé",
+        "titre": "Localisation"
+      },
+      {
+        "contenu": "Mur rideau à rupture de pont thermique, capots serreurs sur ossature PRS acier\nSystème feuillure conforme DTU 33.1 et DTU 39, avec Avis Technique ou équivalent\nPrise en feuillure sur 3 côtés (haut) + joint bord à bord ; 4 côtés pour vitrages étroits latéraux\nCalage adapté aux modules et bandeau sup. ; calage latéral renforcé pour l’antieffraction (bas)\nDouble étanchéité assurée (cf. § 4.2.6.1)\nPréfabrication en atelier systématique, montage mécanique (sans perçage ni soudure)\nRemplissages maintenus en feuillure sur tout le périmètre (bas et intermédiaire)\nSerreurs fixés via boutons d’isolation, renforcés pour sécurité\nCapots alu thermolaqués clipsés, finition selon choix MOE (cf. annexe FAA)",
+        "titre": "Système constructif"
+      },
+      {
+        "contenu": "Montants & traverses : profilés reconstitués soudés (acier S355 ou inférieur sur justificatif)\n\nDimensions profilés : adaptées aux exigences structurelles\n\nSoudures PRS : meulées à plat ; visibles = soudure laser continue\n\nFixations traverses/montants : invisibles (int. et ext.)\n\nPréfabrication atelier : systématique, montage mécanique sans perçage ni soudure\n\nCompatibilité matériaux : physico-chimique à justifier\n\nTraitement anticorrosion & thermolaquage : poudre polyester selon NF P24-351, adapté à l’exposition\n\nFinitions : validées par l’architecte, couleurs au choix MOE",
+        "titre": "Ossature support en PRS acier"
+      },
+      {
+        "contenu": "Montants verticaux : acier, sections tubulaires reconstituées ~350×100 mm\n\nModénature intérieure : selon détail architecte\n\nFixation : ancrés en dalle de sol, restreints hors plan en tête\n\nFabrication : en un seul élément sur toute la hauteur de façade",
+        "titre": "Montants verticaux principaux"
+      },
+      {
+        "contenu": "Traverses horizontales : acier, sections tubulaires ~350×100 mm\n\nAlignement : même profondeur que les montants, appui entre montants principaux\n\nTraverses intermédiaires : avec contreflèche pour limiter la flèche et garantir le fonctionnement des portes\n\nReprise de charge : plats soudés horizontaux raidis pour le poids des vitrages du bandeau supérieur\n\nAdaptation poteau béton : traverse redécoupée et renforcée localement (géométrie circulaire)",
+        "titre": "Traverses horizontales principales"
+      },
+      {
+        "contenu": "Partie basse : montants et traverses en PRS acier pour redécoupage de façade et intégration des portes\n\nMasses vues : réduites et harmonisées avec les portes\n\nPériphérie des portes coulissantes : PRS renforcés thermiquement (bourrage isolant) pour limiter ponts thermiques",
+        "titre": "Montants et traverses secondaires"
+      },
+      {
+        "contenu": "Structure principale : 6 montants verticaux toute hauteur, espacés de 5 m (sauf en rives)\n\nRôle des montants : reprise du vent + poids des vitrages supérieurs\n\nAppuis : montants posés en pied, liaison GO en tête via appui dilatant\n\nTraverses : articulées sur montants, définissent 3 bandeaux horizontaux\n\nVitrages : insérés dans la trame, charges transmises aux montants via traverses\n\nComportement statique :\n\nCharges verticales :\n\nBandeau sup. : vitrages posés sur traverses intermédiaires → montants\n\nBandeau inf. : panneaux/portes posés au sol ou sur traverse basse\n\nCoulissants : suspendus aux traverses (hypothèse la plus défavorable)\n\nCharges horizontales (vent) :\n\nTransmises aux traverses et montants via feuillure continue (bandeau sup.)\n\nAilleurs : transmission périphérique\n\nAu droit des portes : reprise ponctuelle par la structure primaire",
+        "titre": "Fonctionnement statique"
+      },
+      {
+        "contenu": "Fixation montants : sur dalle (Rdc) et poutres de reprise via platines acier galvanisé\n\nRéglage platines : ajustées en X/Y/Z selon tolérances GO, avec réglage fin prévu\n\nDétail en pied : à valider par l’architecte, compatible avec cinématique des portes\n\nLiaisons mécaniques : transfert d’efforts + dilatations thermiques + mouvements extrêmes pris en compte\n\nMontage : haute précision requise, peu de tolérance aux ajustements sur site\n\nImplantation : mesures du GO à réaliser avant fabrication",
+        "titre": "Système de fixation"
+      }
+    ]
+  }
+]

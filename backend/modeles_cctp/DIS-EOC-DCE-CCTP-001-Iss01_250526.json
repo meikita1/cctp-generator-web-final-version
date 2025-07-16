@@ -1,0 +1,384 @@
+[
+    {
+        "nomTypologie": "MR-01 - Mur-rideau grille Rdc (hors patio)",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Rez-de-chaussée (Rdc), toutes orientations sauf patio."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille à capot serreur.\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses en aluminium à rupture de pont thermique (RPT).\nPose au sol.\nHauteur simple (2,85m) ou double (5,75m)."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation.\nTeinte \"Spectre 2\" (naturelle) sur la rue Rouget de Lisle.\nTeinte \"Satine OR 2/3\" (champagne) sur les autres façades."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": "Vitrés (GL-01) : Double vitrage isolant, anti-effraction P5A.\nOpaques (OP-01) : Panneau composite avec âme en nid d'abeille et isolation 165mm en laine minérale."
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": "SAS d'entrée (PO-03) : Portes coulissantes automatiques.\nPortes (PO-01/02) : Battantes à 1 ou 2 vantaux."
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Sécurité anti-effraction : CR2/P5A.\nStores intérieurs motorisés.\nPassages pour quatre colonnes sèches en façade."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-02 - Mur-rideau grille rue Rouget de Lisle",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Façade Nord, rue Rouget de Lisle, du R+1 au R+7."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille à capot serreur\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses aluminium à RPT.\nSuspendu du R+1 au R+6, posé au R+7.\nTrame de 1,08m de large."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Spectre 2\" (naturelle)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": ""
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Capot serreur vertical de 130mm de profondeur servant de brise-soleil.\nStores intérieurs motorisés."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-03 - Mur-rideau grille terrasses, balcons, gradins",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Niveaux R+1 à R+5, sur les gradins, balcons et terrasses."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille posé en tunnel.\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses aluminium à RPT."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Spectre 2\" (naturelle)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": ""
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Stores intérieurs motorisés.\nInterface avec une poutre en béton traversant le remplissage opaque."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-04 - Mur-rideau grille cage escalier",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Cages d'escalier (allées de Grenelle et Gustave Eiffel), du Rdc au R+5."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille suspendu depuis le R+5.\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses aluminium à RPT. Trame de 2,21m de large."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Satine OR 2/3\" (champagne)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Brise-soleil tubulaires horizontaux en aluminium.\nSécurité anti-effraction CR2/P5A au Rdc.\nCapot serreur profond (95mm) sur la partie opaque."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-05 - Mur-rideau grille ascenseur",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Cages d'ascenseur côté patio, du Rdc au R+7."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille à capot serreur.\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses aluminium à RPT. Trame de 1,28m de large."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Spectre 2\" (naturelle)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": ""
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Ossature aluminium renforcée par des éléments en acier et remplie de laine de roche au niveau du C+D."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-06 - Mur-rideau grille faille",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "\"Faille\" architecturale dans l'aile Ouest (allée de Grenelle), du Rdc au R+1."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille à capot serreur.\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses aluminium à RPT.\nHauteur totale ~5,8m, divisée verticalement en trois parties."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Spectre 2\" (naturelle)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": "Portes vitrées battantes à double vantaux (PO-05a/b)."
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Habillage de la sous-face en bardage de lamelles de bois.\nInstallation d'un nichoir pour Martinet noir."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-07 - Mur-rideau grille patio avec C+D",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Façades du patio, toutes orientations, du Rdc au R+7."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau grille à capot serreur.\nRéférence : Schüco FW 60.SI ou équivalent."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Montants et traverses aluminium à RPT, avec renforts en double hauteur."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Spectre 2\" (naturelle)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": ""
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Stores intérieurs motorisés.\nOssature renforcée en acier pour la performance C+D."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-08 - Mur-rideau cadre Attique",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Niveaux R+6 et R+7, sur tout le périmètre du bâtiment.",
+                "sous_titres": []
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau cadre en double peau ventilée.",
+                "sous_titres": []
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Cadres pré-assemblés en aluminium à RPT.",
+                "sous_titres": []
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Spectre 2\" (naturelle).",
+                "sous_titres": []
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": "",
+                "sous_titres": [
+                    {
+                        "titre": "Peau extérieure (GL-08)",
+                        "contenu": "Simple vitrage feuilleté de sécurité."
+                    },
+                    {
+                        "titre": "Peau intérieure (GL-03)",
+                        "contenu": "Double vitrage isolant."
+                    },
+                    {
+                        "titre": "Opaques (OP-06)",
+                        "contenu": "Panneaux isolants dans les modules simple peau."
+                    }
+                ]
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": "",
+                "sous_titres": [
+                    {
+                        "titre": "Portes-fenêtres (PO-10)",
+                        "contenu": "Pour accès à la cavité de la double peau."
+                    },
+                    {
+                        "titre": "Portes d'accès terrasse (PO-11)",
+                        "contenu": ""
+                    },
+                    {
+                        "titre": "Ouvrant de confort",
+                        "contenu": "à remplissage opaque."
+                    }
+                ]
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Protection solaire par voilage en tissu motorisé dans la cavité.\nInstallation de deux nichoirs pour chauves-souris.",
+                "sous_titres": []
+            }
+        ]
+    },
+    {
+        "nomTypologie": "MR-09 - Mur-rideau bloc",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Façades latérales (allées Gustave Eiffel, de Grenelle, des Sablons), du R+1 au R+5."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Mur-rideau bloc (cadre)."
+            },
+            {
+                "titre": "Structure",
+                "contenu": "Cadres modulaires en aluminium à RPT."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation teinte \"Satine OR 2/3\" (champagne)."
+            },
+            {
+                "titre": "Remplissage",
+                "contenu": ""
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": "Ouvrants (OV-05), De confort, de type VEC (Vitrage Extérieur Collé)"
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Brise-soleil triangulaires en forme de L."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "BR-01 - Bardage métallique",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Toutes orientations, du Rdc au R+7, sur support béton ou acier."
+            },
+            {
+                "titre": "Système",
+                "contenu": ""
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation, teinte \"Spectre 2\" (naturelle) ou \"Satine OR 2/3\" (champagne) selon la localisation."
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Installation de plots et filins pour plantes grimpantes dans le patio.\nIntégration de coffrets techniques en façade.\nDans le patio, recoupement coupe-feu tous les deux étages."
+            }
+        ]
+    },
+    {
+        "nomTypologie": "BR-02 - Bardage à ventelles",
+        "modele": "Modèle de Base",
+        "sections": [
+            {
+                "titre": "Localisation",
+                "contenu": "Rdc, devant les locaux techniques (allées Gustave Eiffel et des Sablons)."
+            },
+            {
+                "titre": "Système",
+                "contenu": "Lames horizontales en aluminium extrudé en forme de Z sur une ossature en acier.\nRéférence : DucoWall Screening 70 ou équivalent."
+            },
+            {
+                "titre": "Finitions",
+                "contenu": "Anodisation, teinte \"Spectre 2\" (naturelle) ou \"Satine OR 2/3\" (champagne) selon la localisation."
+            },
+            {
+                "titre": "Ouvrants",
+                "contenu": ""
+            },
+            {
+                "titre": "Spécificités",
+                "contenu": "Passage d'air libre de 50% minimum.\nHabillage de porte de garage avec les mêmes ventelles."
+            }
+        ]
+    }
+]
