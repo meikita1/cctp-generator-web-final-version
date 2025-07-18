@@ -1,12 +1,16 @@
 @echo off
 TITLE Generateur CCTP - Lanceur
 
+REM --- Determination du repertoire du script ---
+SET SCRIPT_DIR=%~dp0
+ECHO Repertoire du script: %SCRIPT_DIR%
+
 ECHO Lancement du Generateur CCTP...
 ECHO.
 
 REM --- Etape 1: Lancement du serveur Backend en arriere-plan ---
 ECHO --- Lancement du serveur Backend (Python)...
-START "Backend Server" cmd /k "cd backend && call .\\venv\\Scripts\\activate.bat && set FLASK_APP=app.py && python -m flask run"
+START "Backend Server" cmd /k "cd /d "%SCRIPT_DIR%backend" && call .\\venv\\Scripts\\activate.bat && set FLASK_APP=app.py && python -m flask run"
 
 REM --- Etape 2: Boucle d'attente active du serveur Backend ---
 ECHO --- En attente du demarrage complet du serveur Backend (port 5000)...
@@ -24,7 +28,7 @@ if %errorlevel% neq 0 (
 ECHO.
 ECHO --- Serveur Backend detecte ! Lancement du Frontend. ---
 REM --- Etape 3: Lancement du serveur Frontend maintenant que le Backend est pret ---
-START "Frontend Server" cmd /k "cd frontend && npm run dev"
+START "Frontend Server" cmd /k "cd /d "%SCRIPT_DIR%frontend" && npm run dev"
 
 REM --- Etape 4: Ouverture de l'application dans le navigateur ---
 ECHO --- Ouverture de l'application dans le navigateur...
