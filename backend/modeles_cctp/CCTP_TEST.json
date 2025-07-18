@@ -3,21 +3,24 @@
     "nomTypologie": "JBB – Joint Bord à Bord",
     "sections": [
       {
-        "contenu": "DTU 39\nCahier des charges CEKAL VEC\nFiche technique n°24 édité par le SNFA",
-        "titre": "Références",
+        "contenu": "Joint bord à bord : double mastic silicone sur fond de joint préformé (au-dessus du joint de scellement)\n\nÉtanchéité : double barrière avec lame d’air ventilée et drainée vers la feuillure périphérique\n\nJoints périphériques : silicone, assurant continuité entre joints extrudés et préformés\n\nIndice d'humidité : i ≤ 0,1 (mastic de scellement)\n\nFaçonnage : tranches et chants en JPI\n\nZones visibles à travers vitrage : à traiter (sinon opacification ou sérigraphie silicone)\n\nColoris joints & intercalaires : au choix du Maître d’Œuvre",
+        "titre": "Généralités",
         "isGenerating": false
       },
       {
-        "contenu": "Joint bord à bord : double mastic silicone sur fond de joint préformé (au-dessus du joint de scellement)\n\nÉtanchéité : double barrière avec lame d’air ventilée et drainée vers la feuillure périphérique\n\nJoints périphériques : silicone, assurant continuité entre joints extrudés et préformés\n\nIndice d'humidité : i ≤ 0,1 (mastic de scellement)\n\nFaçonnage : tranches et chants en JPI\n\nZones visibles à travers vitrage : à traiter (sinon opacification ou sérigraphie silicone)\n\nColoris joints & intercalaires : au choix du Maître d’Œuvre",
-        "titre": "Généralités"
+        "contenu": "DTU 39\nCahier des charges CEKAL VEC\nFiche technique n°24 édité par le SNFA",
+        "isGenerating": false,
+        "titre": "Références"
       },
       {
         "contenu": "Système d’étanchéité / drainage / aération : conforme à un Avis Technique du fournisseur\n\nPrise en feuillure continue (capots serreurs) :\n\nÉtanchéité assurée par serrage de joints EPDM noirs (profilés extrudés)\n\nSystème à double barrière avec drainage vers l’extérieur\n\nGarnitures d’étanchéité :\n\nIntérieure :\n\nVerticale filante, horizontale découpée à dimension\n\nFixée via boutons d’isolation + bande butyle en U\n\nLèvre horizontale pour drainage + protection des chants\n\nPlan d’étanchéité fermé (alignement horizontal/vertical)\n\nExtérieure :\n\nVerticale filante, horizontale découpée\n\nClippage dans les gorges des capots serreurs\n\nPoints sensibles : croix, T, angles → étanchéité par pâte spéciale\n\nFeuillures : systématiquement drainées, ventilées, équilibrage de pression\n\nRaccords traverse/montant : drainage en cascade sauf mention contraire\n\nJoints : élasticité adaptée aux déformations et dilatations de l’ossature",
-        "titre": "Étanchéité courante"
+        "titre": "Étanchéité courante",
+        "isGenerating": false
       },
       {
         "contenu": "Cornière métallique : anti-effraction + support pour raccord pierre agrafée\n\nMembrane étanche : pincée entre béton et cornière, prise en feuillure dans le mur rideau, fixée sur béton\n\nProfilés en U : fixés au GO avec double joint compressible (type Illmod), reçoivent les panneaux opaques\n\nIsolation complémentaire : laine minérale\n\nPare-vapeur : en continuité avec l’isolation\n\nCornière filante intérieure : pour raccord avec finitions (coordination avec lots en interface)",
-        "titre": "Étanchéité périphérique de raccord au G.O"
+        "titre": "Étanchéité périphérique de raccord au G.O",
+        "isGenerating": false
       }
     ]
   },

@@ -1,25 +1,80 @@
 # Générateur CCTP - Version Web
 
-Cette application est une migration web de l'application de bureau Tkinter pour générer des CCTP.
+Cette application est une migration web de l'application de bureau Tkinter pour générer des CCTP (Cahiers des Clauses Techniques Particulières) avec l'aide de l'IA.
+
+## Structure du Projet
+
+```
+cctp-generator-web/
+├── backend/                    # Serveur Python Flask
+│   ├── app.py                 # Application principale Flask
+│   ├── requirements.txt       # Dépendances Python
+│   ├── venv/                  # Environnement virtuel Python
+│   ├── fonts/                 # Polices pour l'export PDF
+│   ├── modeles_cctp/         # Modèles de projets CCTP (.json)
+│   ├── previews_cctp/        # Prévisualisations générées
+│   └── knowledge_base/       # Base de connaissances (PDFs analysés)
+├── frontend/                  # Interface utilisateur Vue.js
+│   ├── src/                  # Code source Vue.js
+│   ├── package.json          # Dépendances Node.js
+│   └── vite.config.js        # Configuration Vite
+└── lancer_application.bat    # Script de lancement automatique (Windows)
+```
 
 ## Architecture
 
--   **Backend**: Python avec le micro-framework Flask. Gère la logique métier, les appels à l'API OpenAI, la manipulation des fichiers et la génération des documents.
--   **Frontend**: JavaScript avec le framework Vue.js (via Vite). Gère l'interface utilisateur interactive dans le navigateur.
+-   **Backend**: Python avec Flask. Gère la logique métier, les appels à l'API OpenAI, la manipulation des fichiers et la génération des documents PDF/Word.
+-   **Frontend**: JavaScript avec Vue.js (via Vite). Interface utilisateur interactive dans le navigateur.
+-   **Communication**: API REST entre le frontend et le backend.
 
 ## Prérequis
 
--   Python 3.8+
--   Node.js 18+ et npm
--   Une clé API OpenAI
+-   **Python 3.8+** avec pip
+-   **Node.js 18+** avec npm
+-   **Une clé API OpenAI** (GPT-4 recommandé)
+-   **Windows** (pour le script de lancement automatique)
 
 ## Installation et Lancement
 
-### 1. Cloner le projet
+### Option 1: Lancement automatique (Windows - Recommandé)
 
-Clonez ce dépôt et naviguez à la racine du projet.
+**🚀 Pour un démarrage rapide, utilisez le script de lancement automatique :**
 
-### 2. Configuration du Backend
+1. **Préparer l'environnement** (première fois uniquement) :
+   ```bash
+   # Créer l'environnement virtuel Python
+   cd backend
+   python -m venv venv
+   .\venv\Scripts\activate
+   pip install -r requirements.txt
+   cd ..
+   
+   # Installer les dépendances Node.js
+   cd frontend
+   npm install
+   cd ..
+   ```
+
+2. **Configurer la clé API OpenAI** :
+   - Créez une variable d'environnement système `OPENAI_API_KEY` avec votre clé
+   - Ou modifiez temporairement le script `lancer_application.bat` pour inclure votre clé
+
+3. **Lancer l'application** :
+   ```bash
+   # Double-cliquez sur le fichier ou exécutez :
+   lancer_application.bat
+   ```
+
+**Le script automatique :**
+- ✅ Lance le serveur backend Python (Flask)
+- ✅ Attend que le backend soit prêt
+- ✅ Lance le serveur frontend (Vite)
+- ✅ Ouvre automatiquement l'application dans votre navigateur
+- ✅ Gère la séquence de démarrage complète
+
+### Option 2: Lancement manuel
+
+#### 1. Configuration du Backend
 
 a. **Naviguez vers le dossier backend :**
    ```bash
@@ -43,28 +98,21 @@ c. **Installez les dépendances Python :**
    ```
 
 d. **Configurez votre clé API OpenAI :**
-   Créez une variable d'environnement nommée `OPENAI_API_KEY` avec votre clé.
    ```bash
-   # Pour Windows (dans le terminal actuel)
+   # Pour Windows
    set OPENAI_API_KEY="votre_cle_ici"
 
-   # Pour macOS/Linux (dans le terminal actuel)
+   # Pour macOS/Linux
    export OPENAI_API_KEY="votre_cle_ici"
    ```
-   **Note :** Pour une utilisation permanente, ajoutez cette variable à votre système.
 
-e. **Préparez les données initiales (si nécessaire) :**
-   - Placez vos fichiers de polices `DejaVuSans.ttf` et `DejaVuSans-Bold.ttf` dans un dossier `backend/fonts/`.
-   - Placez vos fichiers de projet `.json` dans `backend/modeles_cctp/`.
-   - Placez vos fichiers PDF d'exemples dans un dossier et utilisez la fonction d'analyse (à implémenter via un endpoint API si besoin).
-
-f. **Lancez le serveur backend :**
+e. **Lancez le serveur backend :**
    ```bash
-   flask run
+   python -m flask run
    ```
-   Le serveur devrait démarrer sur `http://127.0.0.1:5000`. Laissez ce terminal ouvert.
+   Le serveur démarre sur `http://127.0.0.1:5000`. **Laissez ce terminal ouvert.**
 
-### 3. Configuration du Frontend
+#### 2. Configuration du Frontend
 
 a. **Ouvrez un NOUVEAU terminal** et naviguez vers le dossier frontend :
    ```bash
@@ -76,12 +124,37 @@ b. **Installez les dépendances JavaScript :**
    npm install
    ```
 
-c. **Lancez le serveur de développement du frontend :**
+c. **Lancez le serveur de développement :**
    ```bash
    npm run dev
    ```
-   Le serveur de développement Vite démarrera, généralement sur `http://localhost:5173`.
+   Le serveur Vite démarre sur `http://localhost:5173`.
 
-### 4. Utilisation
+### 3. Utilisation
 
-Ouvrez l'URL du frontend (ex: `http://localhost:5173`) dans votre navigateur. L'application web communiquera automatiquement avec votre serveur backend local.
+- Ouvrez `http://localhost:5173` dans votre navigateur
+- L'application communique automatiquement avec le backend sur le port 5000
+- **Important :** Gardez les deux terminaux (backend et frontend) ouverts pendant l'utilisation
+
+## Fonctionnalités
+
+- 📝 Création et gestion de projets CCTP
+- 🏗️ Organisation par typologies et sections
+- 🤖 Génération automatique de contenu avec IA (GPT-4)
+- 📚 Base de connaissances à partir de PDFs existants
+- 📄 Export PDF et Word
+- 🔄 Prévisualisation en temps réel
+- ✏️ Édition manuelle et suggestions IA
+
+## Dépannage
+
+### Problèmes courants :
+- **Port 5000 occupé** : Arrêtez les autres applications Flask ou changez le port
+- **Clé API manquante** : Vérifiez que `OPENAI_API_KEY` est bien configurée
+- **Polices manquantes** : Placez les fichiers `.ttf` dans `backend/fonts/`
+- **Dépendances manquantes** : Réexécutez `pip install -r requirements.txt` et `npm install`
+
+### Le script lancer_application.bat ne fonctionne pas :
+- Vérifiez que Python et Node.js sont installés et dans le PATH
+- Assurez-vous que l'environnement virtuel existe (`backend/venv/`)
+- Vérifiez que les dépendances sont installées dans les deux dossiers

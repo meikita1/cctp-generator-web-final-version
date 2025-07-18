@@ -1,6 +1,6 @@
 
 
---- EXTRAIT DU DOCUMENT : 01_EOC_004_PRO_CCTP_TN_TZ_01_00_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 01_EOC_004_PRO_CCTP_TN_TZ_01_00.pdf ---
 
 Rue Legendre
 Réhabilitation d’un ensemble immobilier    CCTP Menuiseries extérieures - Verrières  Phase PRO
@@ -1025,7 +1025,7 @@ Référence qualité (ou équivalent)
 
 
 
---- EXTRAIT DU DOCUMENT : 2019.04.19 - REN CCTP Facades_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 2019.04.19 - REN CCTP Facades.pdf ---
 
 Généralités
 Les vitrages devront être conf ormes aux spécifications techniques détaillées et aux normes en vigueur. Les
@@ -2608,7 +2608,7 @@ Kit complet fourn it et stocké sur site avant la livraison du bâtiment.
 
 
 
---- EXTRAIT DU DOCUMENT : 2020-01-24_318080_Grande Armée_CCTP MEX_ind C_Dossier Marché_PROJET_modifs intégrés_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 2020-01-24_318080_Grande Armée_CCTP MEX_ind C_Dossier Marché_PROJET_modifs intégrés.pdf ---
 
 Ouvrages concernés par le Présent Lot
 Les ouvrages décrits dans le présent document couvrent les éléments suivants.
@@ -4186,7 +4186,7 @@ justifier par essais ou par PV d’essais précédents en conditions identiques 
 
 
 
---- EXTRAIT DU DOCUMENT : 2022-06-30_PHARMA_PRO v2_CCTP MEX_Façades_indC_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 2022-06-30_PHARMA_PRO v2_CCTP MEX_Façades_indC.pdf ---
 
 Convention de nomenclature des Façades
 Les ouvrages à la charge du Lot Façades sont référencés sur les plans de repérage établis par l’Architecte.
@@ -5864,7 +5864,7 @@ Sans objet pour la typologie MR-F5, le Hall d’Entrée étant une espace de cir
 
 
 
---- EXTRAIT DU DOCUMENT : 20220325 MARBEUF DCE CCTP MEX_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 20220325 MARBEUF DCE CCTP MEX.pdf ---
 
 – 34 rue Marbeuf
 CCTP – Menuiseries extérieures   Phase  DCE
@@ -7964,7 +7964,7 @@ permanente aux rayons UV
 
 
 
---- EXTRAIT DU DOCUMENT : 210622 - UNESCO - CCTP LOT 04 - FAC PROUVE - DCE - IndB_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 210622 - UNESCO - CCTP LOT 04 - FAC PROUVE - DCE - IndB.pdf ---
 
 – Réhabilitation du bâtiment V de l’UNESCO - PARIS                                                           31/78
 DCE IND.B – CCTP LOT 04 – FACADES PROUVE – 22/06/2021
@@ -9512,7 +9512,7 @@ d’accès provisoires de type échafaudage sur pied.
 
 
 
---- EXTRAIT DU DOCUMENT : 210622 - UNESCO - CCTP LOT 05 - FAC COURANTES - DCE - IndB_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 210622 - UNESCO - CCTP LOT 05 - FAC COURANTES - DCE - IndB.pdf ---
 
 – Réhabilitation du bâtiment V de l’UNESCO - PARIS                                                           31/104
 DCE IND.B – CCTP LOT 05 – FACADES COURANTES – 22/06/2021  2. PERFORMANCES DES OUVRAGES
@@ -12446,7 +12446,7 @@ coursives, éventuellement aidé d’une perche télescopique de nettoyage.
 
 
 
---- EXTRAIT DU DOCUMENT : 220121_GAU_MAR_EOC_FAC_CCTP_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 220121_GAU_MAR_EOC_FAC_CCTP.pdf ---
 
 Convention de nomenclature des Façades
 Les ouvrages du projet ont été regroupés suivant les principes et systèmes communs à chaque technologie.
@@ -13530,7 +13530,7 @@ organes de transmission
 
 
 
---- EXTRAIT DU DOCUMENT : 221014_ORI_ACT_NOT_TN_02_CCTP-Facades_EOC_A4_4_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 221014_ORI_ACT_NOT_TN_02_CCTP-Facades_EOC_A4_4.pdf ---
 
 Ensemble menuisés
 La mise en œuvre sera simple et rapide, les temps d’intervention sur site devront être limités au minimum. La
@@ -15090,7 +15090,7 @@ Fin du Document
 
 
 
---- EXTRAIT DU DOCUMENT : 231222_EOC-BAZ1-PRO-FAC-CCTP-003-0_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 231222_EOC-BAZ1-PRO-FAC-CCTP-003-0.pdf ---
 
 Austerlitz
 CCTP Lot Façades-Nacelle Indice 0
@@ -17351,7 +17351,7 @@ supporter les efforts liés à la nacelle.
 
 
 
---- EXTRAIT DU DOCUMENT : 26CE_MAR_02_03_EOC_CCTP Facades_ind 7_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 26CE_MAR_02_03_EOC_CCTP Facades_ind 7.pdf ---
 
 Avenue des Champs Élysées
 CCTP Façades
@@ -19963,7 +19963,7 @@ façade pour raccordement.
 
 
 
---- EXTRAIT DU DOCUMENT : 51GA_EOC_DCE_LOT05_CCTP_805_01_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : 51GA_EOC_DCE_LOT05_CCTP_805_01.pdf ---
 
 Nomenclature
 Les typologies sont répertoriées dans le tableau suivant et repérées selon plans de repérages  dans les pièces
@@ -21997,7 +21997,7 @@ permanente aux rayons UV
 
 
 
---- EXTRAIT DU DOCUMENT : CAN_EOC_MAR_FAC_04.0001_CCTP_04_TN_1_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : CAN_EOC_MAR_FAC_04.0001_CCTP_04_TN_1.pdf ---
 
 - 35 Bld de la Croisette
 CCTP LOT 04 Menuiseries extérieures -
@@ -24686,7 +24686,7 @@ Pour toutes les finitions à l’extérieur par thermolaquage,
 
 
 
---- EXTRAIT DU DOCUMENT : DIS-EOC-DCE-CCTP-001-Iss01_250526_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : DIS-EOC-DCE-CCTP-001-Iss01_250526.pdf ---
 
 Généralités
 Les plans joints au dossier sont des plans guides e t ne font pas office de plans d'exécution. Ils repr ésentent
@@ -29023,7 +29023,7 @@ Securité  N/A
 
 
 
---- EXTRAIT DU DOCUMENT : EOC_BMG1_FAC_PRO_NOT_01.01.04_TTZ_2_CCTP_v2_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : EOC_BMG1_FAC_PRO_NOT_01.01.04_TTZ_2_CCTP_v2.pdf ---
 
 Convention de nomenclature des Façades
 Les façades du projet ont été regroupées suivant le s principes et systèmes communs à chaque technologi e.
@@ -32259,7 +32259,7 @@ du produit sélectionné ;
 
 
 
---- EXTRAIT DU DOCUMENT : EOC_SCI_MAR_MEX_TZ_TN_DC_1127_B_CCTP Façades et Verrière_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : EOC_SCI_MAR_MEX_TZ_TN_DC_1127_B_CCTP Façades et Verrière.pdf ---
 
 Description générale des ouvrages
 La rénovation des façades du bâtiment se fait «  dito existant  ». L’élévation des façades projets conservent alors les
@@ -33057,7 +33057,7 @@ située en sous -face des verrières  :
 
 
 
---- EXTRAIT DU DOCUMENT : EOC_SDC_MAR_MEX_TZ_TN_DC_1127_B_CCTP Façades et Verrière_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : EOC_SDC_MAR_MEX_TZ_TN_DC_1127_B_CCTP Façades et Verrière.pdf ---
 
 Description générale des ouvrages
 La rénovation des façades du bâtiment se fait «  dito existant  ». L’élévation des façades projets conservent alors les
@@ -34069,7 +34069,7 @@ personnes non autorisées.
 
 
 
---- EXTRAIT DU DOCUMENT : POM_PRO_EOC_FAC_NOT_A_CCTP_0210_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : POM_PRO_EOC_FAC_NOT_A_CCTP_0210.pdf ---
 
 REFERENCES
 Selon DTU 33.1
@@ -35538,7 +35538,7 @@ typologies avec occultation totale).
 
 
 
---- EXTRAIT DU DOCUMENT : PRO_05000_EOC_FAC_CPS_TTZ_TNV_B_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : PRO_05000_EOC_FAC_CPS_TTZ_TNV_B.pdf ---
 
 Convention de nomenclature des Faç ades
 Les façades du projet ont été regroupées suivant les principes et systèmes communs à chaque
@@ -36252,7 +36252,7 @@ classement : P 75 -407.
 
 
 
---- EXTRAIT DU DOCUMENT : REN_MAR_EOC_FAC_NOT_1.3-003_CCTP-FACADE_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : REN_MAR_EOC_FAC_NOT_1.3-003_CCTP-FACADE.pdf ---
 
 of 81
 REN_EOC_FAC_PRO _NOT_1.3.3.CCTP -FACADE
@@ -37067,7 +37067,7 @@ Photographie s du système  existant en caisson s métalliques  au niveau de la 
 
 
 
---- EXTRAIT DU DOCUMENT : RP2-EOC-MI-PRO-NOT-TN-03-Menuiseries_exterieures_Verriere_Occultation_removed.pdf ---
+--- EXTRAIT DU DOCUMENT : RP2-EOC-MI-PRO-NOT-TN-03-Menuiseries_exterieures_Verriere_Occultation.pdf ---
 
 Ensemble menuisés
 La mise en œuvre sera simple et rapide, les temps d’intervention sur site devront être limités au minimum. La

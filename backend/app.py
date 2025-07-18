@@ -33,7 +33,7 @@ CORS(app)
 
 # --- CONSTANTES DE L'APPLICATION (reprises de votre script) ---
 PLACEHOLDER_PATTERN = r'(\[(?:À PRÉCISER|À VALIDER|COMPLÉTER|RÉFÉRENCE À INDIQUER).*?\])'
-REFERENCE_PATTERN = r'(\(voir exemple CCTP .*?\))'
+REFERENCE_PATTERN = r'(\(voir exemple CCTP .*?(?:\s*->\s*.*?)?\))'
 CROSS_REF_PATTERN = r'(\{\{REF:(.*?)\|(.*?)\}\})'
 MAX_EXAMPLES_IN_PROMPT = 3
 MAX_TOTAL_EXAMPLE_CHARS = 4000
@@ -48,12 +48,54 @@ PREVIEWS_DIR = os.path.join(BASE_DIR, "previews_cctp")
 KNOWLEDGE_BASE_DIR = os.path.join(BASE_DIR, "knowledge_base")
 KNOWLEDGE_BASE_PATH = os.path.join(KNOWLEDGE_BASE_DIR, "knowledge_base.txt")
 BIBLIOTHEQUE_SECTIONS_PATH = os.path.join(BASE_DIR, "bibliotheque_sections.json")
+SYSTEM_PROMPT_PATH = os.path.join(BASE_DIR, "system_prompt.txt")
 
 # S'assurer que les dossiers de données existent au démarrage
 os.makedirs(MODELES_DIR, exist_ok=True)
 os.makedirs(PREVIEWS_DIR, exist_ok=True)
 os.makedirs(KNOWLEDGE_BASE_DIR, exist_ok=True)
 
+# --- PROMPT PAR DÉFAUT ---
+DEFAULT_SYSTEM_PROMPT = (
+    "Tu es un expert rédacteur de CCTP pour des projets de construction (phase PRO). Ta mission est de rédiger une description technique précise pour une section spécifique à partir des notes (contexte) qui te sont données.\n\n"
+    "INSTRUCTIONS IMPÉRATIVES :\n"
+    "1.  **Niveau de détail 'PRO'** : La précision est essentielle. Évite les généralités. Sois technique et factuel. MAIS SURTOUT, adapte le niveau de détail à la complexité de la section (ex : 'Localisation' = bref, 'Performances' = très détaillé). C'EST TRÈS IMPORTANT D'ÊTRE PRÉCIS MAIS SANS TROP DONNER D'ÉLÉMENTS, PRÉCIS MAIS COURT !\n"
+    "2.  **Placeholders** : S'il manque des informations essentielles pour un niveau PRO (valeurs, références, choix techniques, etc.), insère un placeholder clair. Ex : `[À PRÉCISER : type de vitrage]`, `[À VALIDER : résistance au feu EI60]`. Il vaut MIEUX signaler ce qui manque que de le deviner. Il faut que ce soit précis, clair, équilibré et pertinent.\n"
+    "3.  **Utilisation des exemples fournis (CONSEILLÉE)** : Tu disposes d'extraits de CCTP fournis en exemple. **Essaie d'en réutiliser un ou plusieurs quand c'est pertinent**, pour enrichir ou formuler plus clairement certains éléments techniques. **Ce n'est pas obligatoire**, mais c'est **fortement recommandé** quand un exemple est utile, crédible ou mieux formulé que ce que tu peux déduire uniquement des notes. **Ne dépasse pas 1 à 2 utilisations par section.** Si tu reprends un extrait ou t'en inspires, mentionne la source avec le format suivant : `(voir exemple CCTP nom_du_fichier.pdf -> nom_section_originale)` où nom_section_originale est le nom exact de la section dans le document source.\n"
+    "4.  **Formatage** : Réponds DIRECTEMENT avec le texte de la section. N'inclus PAS de titre, de numérotation ni le nom de la typologie dans ta réponse."
+)
+
+def load_system_prompt():
+    """Charge le prompt système personnalisé, ou retourne le prompt par défaut si absent."""
+    if os.path.exists(SYSTEM_PROMPT_PATH):
+        try:
+            with open(SYSTEM_PROMPT_PATH, "r", encoding="utf-8") as f:
+                prompt = f.read().strip()
+                if prompt:
+                    return prompt
+        except Exception:
+            pass
+    return DEFAULT_SYSTEM_PROMPT
+
+def save_system_prompt(new_prompt):
+    """Sauvegarde le prompt système personnalisé."""
+    with open(SYSTEM_PROMPT_PATH, "w", encoding="utf-8") as f:
+        f.write(new_prompt.strip())
+
+@app.route('/api/system-prompt', methods=['GET'])
+def get_system_prompt():
+    """Renvoie le prompt système courant (personnalisé ou défaut)."""
+    return jsonify({"prompt": load_system_prompt()})
+
+@app.route('/api/system-prompt', methods=['POST'])
+def set_system_prompt():
+    """Sauvegarde un nouveau prompt système personnalisé."""
+    data = request.json
+    prompt = data.get("prompt", "").strip()
+    if not prompt:
+        return jsonify({"error": "Le prompt ne peut pas être vide."}), 400
+    save_system_prompt(prompt)
+    return jsonify({"message": "Prompt système sauvegardé."})
 
 # --- CLASSE PDF (identique à votre script original) ---
 class PDF(FPDF):
@@ -106,40 +148,70 @@ class PDF(FPDF):
     def add_body_text(self, text):
         current_x = self.get_x()
         self.set_x(20)
-        text = self._render_cross_references(text)
-        combined_pattern = f'({PLACEHOLDER_PATTERN}|{REFERENCE_PATTERN})'
-        text_cleaned = '\n'.join([line for line in text.split('\n') if not line.strip().startswith('###')]).strip()
+        # Nettoyer le texte des marqueurs de formatage
+        text_cleaned = re.sub(r'^###.*$', '', text, flags=re.MULTILINE)
         text_cleaned = text_cleaned.replace('•', '-').strip()
-        parts = re.split(combined_pattern, text_cleaned)
-        for part in filter(None, parts):
-            if part is None: continue
-            if part.startswith('(') and "voir exemple CCTP" in part:
-                self.set_font('DejaVu', '', 9)
-                self.set_text_color(*self.reference_color)
-                self.write(5, part)
-            elif part.startswith('[') and any(kw in part for kw in ["À PRÉCISER", "À VALIDER", "COMPLÉTER"]):
-                self.set_font('DejaVu', 'B', 9)
-                self.set_text_color(*self.placeholder_color)
-                self.write(5, part)
-            elif part.startswith('(voir section '):
-                self.set_font('DejaVu', '', 9)
-                self.set_text_color(*self.cross_ref_color)
-                self.write(5, part)
-            else:
-                self.set_font('DejaVu', '', 9)
-                self.set_text_color(*self.normal_color)
-                self.write(5, part)
+        # Écrire tout en couleur normale, sans distinction
+        self.set_font('DejaVu', '', 9)
+        self.set_text_color(*self.normal_color)
+        self.multi_cell(0, 5, text_cleaned)
         self.ln(5)
         self.set_x(current_x)
 
     def _render_cross_references(self, text):
-        def replace_func(match):
-            nom_typo, nom_section = match.groups()[1], match.groups()[2]
-            for item in self.chapter_map:
-                if item['nom_typo'] == nom_typo and item['titre_section'] == nom_section:
-                    return f"(voir section {item['number']} {nom_section})"
-            return f"(référence introuvable: {nom_typo}|{nom_section})"
-        return re.sub(CROSS_REF_PATTERN, replace_func, text)
+        """Cette méthode n'est plus utilisée car les transformations sont faites en amont"""
+        return text
+
+def extract_parts_for_export(text, chapter_map, include_ai_notes=True):
+    """Sépare texte principal, placeholders, exemples, crossrefs pour export."""
+    if not text:
+        return "", [], [], []
+    
+    # Nettoyer le texte d'abord
+    cleaned_text = _clean_text_for_export(text)
+    
+    placeholders = []
+    exemples = []
+    crossrefs = []
+    main_text = cleaned_text
+    
+    # Extraire les placeholders [À ...] si demandé
+    if include_ai_notes:
+        placeholder_matches = re.findall(PLACEHOLDER_PATTERN, main_text)
+        for match in placeholder_matches:
+            if match not in placeholders:  # Éviter les doublons
+                placeholders.append(match)
+    main_text = re.sub(PLACEHOLDER_PATTERN, '', main_text)
+    
+    # Extraire les exemples (voir exemple CCTP ...) si demandé
+    if include_ai_notes:
+        example_matches = re.findall(REFERENCE_PATTERN, main_text)
+        for match in example_matches:
+            if match not in exemples:  # Éviter les doublons
+                exemples.append(match)
+    main_text = re.sub(REFERENCE_PATTERN, '', main_text)
+    
+    # Traiter les cross-references {{REF:...|...}}
+    def crossref_repl(match):
+        typo = match.group(1)
+        section = match.group(2)
+        ref = next((c for c in chapter_map if c['nom_typo'] == typo and c['titre_section'] == section), None)
+        if ref:
+            ref_text = f"(voir section {ref['number']} {section})"
+            if ref_text not in crossrefs:  # Éviter les doublons
+                crossrefs.append(ref_text)
+        else:
+            error_ref = f"(référence introuvable: {typo}|{section})"
+            if error_ref not in crossrefs:  # Éviter les doublons
+                crossrefs.append(error_ref)
+        return ''
+    
+    main_text = re.sub(CROSS_REF_PATTERN, crossref_repl, main_text)
+    
+    # Nettoyer le texte principal des espaces multiples
+    main_text = re.sub(r'\s+', ' ', main_text).strip()
+    
+    return main_text, placeholders, exemples, crossrefs
 
 # --- FONCTIONS LOGIQUES (adaptées de votre script) ---
 
@@ -151,28 +223,91 @@ def openai_chat_completion(model, messages, temperature=0.3):
         temperature=temperature,
     )
 
-def _construire_prompt_generation(nom_typo, titre_section_propre, notes_utilisateur, contexte_precedent, exemples_pertinents, custom_instruction):
-    instruction_ia = (
+def _get_base_prompt_generation():
+    """Fonction qui contient le prompt de base de VF_LOW_TOKEN.py"""
+    return (
         "Tu es un expert rédacteur de CCTP pour des projets de construction (phase PRO). Ta mission est de rédiger une description technique précise pour une section spécifique à partir des notes (contexte) qui te sont données.\n\n"
         "INSTRUCTIONS IMPÉRATIVES :\n"
-        "1.  **Niveau de détail 'PRO'** : La précision est essentielle. Évite les généralités. Sois technique et factuel. MAIS SURTOUT, adapte le niveau de détail à la complexité de la section (ex : 'Localisation' = bref, 'Performances' = très détaillé). C’EST TRÈS IMPORTANT D’ÊTRE PRÉCIS MAIS SANS TROP DONNER D’ÉLÉMENTS, PRÉCIS MAIS COURT !\n"
-        "2.  **Placeholders** : S’il manque des informations essentielles pour un niveau PRO (valeurs, références, choix techniques, etc.), insère un placeholder clair. Ex : `[À PRÉCISER : type de vitrage]`, `[À VALIDER : résistance au feu EI60]`. Il vaut MIEUX signaler ce qui manque que de le deviner. Il faut que ce soit précis, clair, équilibré et pertinent.\n"
-        "3.  **Utilisation des exemples fournis (CONSEILLÉE)** : Tu disposes d'extraits de CCTP fournis en exemple. **Essaie d’en réutiliser un ou plusieurs quand c’est pertinent**, pour enrichir ou formuler plus clairement certains éléments techniques. **Ce n’est pas obligatoire**, mais c’est **fortement recommandé** quand un exemple est utile, crédible ou mieux formulé que ce que tu peux déduire uniquement des notes. **Ne dépasse pas 1 à 2 utilisations par section.** Si tu reprends un extrait ou t’en inspires, mentionne la source entre parenthèses : `(voir exemple CCTP nom_du_fichier.pdf)`.\n"
-        "4.  **Formatage** : Réponds DIRECTEMENT avec le texte de la section. N’inclus PAS de titre, de numérotation ni le nom de la typologie dans ta réponse."
+        "1.  **Niveau de détail 'PRO'** : La précision est essentielle. Évite les généralités. Sois technique et factuel. MAIS SURTOUT, adapte le niveau de détail à la complexité de la section (ex : 'Localisation' = bref, 'Performances' = très détaillé). C'EST TRÈS IMPORTANT D'ÊTRE PRÉCIS MAIS SANS TROP DONNER D'ÉLÉMENTS, PRÉCIS MAIS COURT !\n"
+        "2.  **Placeholders** : S'il manque des informations essentielles pour un niveau PRO (valeurs, références, choix techniques, etc.), insère un placeholder clair. Ex : `[À PRÉCISER : type de vitrage]`, `[À VALIDER : résistance au feu EI60]`. Il vaut MIEUX signaler ce qui manque que de le deviner. Il faut que ce soit précis, clair, équilibré et pertinent.\n"
+        "3.  **Utilisation des exemples fournis (CONSEILLÉE)** : Tu disposes d'extraits de CCTP fournis en exemple. **Essaie d'en réutiliser un ou plusieurs quand c'est pertinent**, pour enrichir ou formuler plus clairement certains éléments techniques. **Ce n'est pas obligatoire**, mais c'est **fortement recommandé** quand un exemple est utile, crédible ou mieux formulé que ce que tu peux déduire uniquement des notes. **Ne dépasse pas 1 à 2 utilisations par section.** Si tu reprends un extrait ou t'en inspires, mentionne la source avec le format suivant : `(voir exemple CCTP nom_du_fichier.pdf -> nom_section_originale)` où nom_section_originale est le nom exact de la section dans le document source.\n"
+        "4.  **Formatage** : Réponds DIRECTEMENT avec le texte de la section. N'inclus PAS de titre, de numérotation ni le nom de la typologie dans ta réponse."
     )
+
+def _apply_prompt_modifications(base_prompt, modification_text):
+    """Ajoute les modifications comme instructions supplémentaires au prompt de base"""
+    if not modification_text or not modification_text.strip():
+        return base_prompt
+    
+    try:
+        # Demander à GPT de transformer la modification en instruction claire à ajouter au prompt
+        messages = [
+            {"role": "system", "content": "Tu es un expert en rédaction de prompts pour IA. Tu dois transformer une demande utilisateur en instruction claire à ajouter à un prompt existant."},
+            {"role": "user", "content": f"""Voici le prompt de base pour générer des textes de CCTP :
+---
+{base_prompt}
+---
+
+L'utilisateur souhaite ajouter cette modification/contrainte :
+"{modification_text}"
+
+Ta tâche : Transforme cette demande en instruction claire et précise à ajouter à la fin du prompt, sous forme d'une nouvelle instruction numérotée (5.) qui s'intègre harmonieusement avec les 4 instructions existantes.
+
+L'instruction doit :
+- Être claire et actionnable
+- Être formulée comme une consigne pour l'IA
+- S'intégrer naturellement avec le style du prompt existant
+- Être numérotée "5." pour suivre la logique
+
+Réponds uniquement avec le prompt complet incluant la nouvelle instruction."""}
+        ]
+        
+        response = openai_chat_completion(
+            model="gpt-4-1106-preview",
+            messages=messages,
+            temperature=0.3,
+        )
+        
+        modified_prompt = response.choices[0].message.content.strip()
+        return modified_prompt
+        
+    except Exception as e:
+        print(f"Erreur lors de l'ajout des instructions au prompt: {e}")
+        # En cas d'erreur, ajouter simplement l'instruction à la fin
+        return base_prompt + f"\n\n5.  **Instruction supplémentaire** : {modification_text}"
+
+def _construire_prompt_generation(nom_typo, titre_section_propre, notes_utilisateur, contexte_precedent, exemples_pertinents, custom_instruction):
+    # Obtenir le prompt de base de VF_LOW_TOKEN
+    base_instruction = _get_base_prompt_generation()
+    
+    # Obtenir le prompt système personnalisé s'il existe
+    system_prompt = load_system_prompt()
+    
+    # Si le prompt système n'est pas le prompt par défaut, cela signifie qu'il a été modifié
+    if system_prompt != DEFAULT_SYSTEM_PROMPT:
+        # Utiliser le prompt système personnalisé comme instruction de base
+        instruction_ia = system_prompt
+    else:
+        # Utiliser le prompt de base original
+        instruction_ia = base_instruction
+    
+    # Ajouter la consigne spécifique pour cette section si elle existe
     if custom_instruction:
         instruction_ia += f"\n\nCONSIGNE SPÉCIFIQUE POUR CETTE SECTION: {custom_instruction}"
 
+    # Construire le prompt final avec les variables
     base_prompt = (
-        f"\n\n---\n\n"
+        f"{instruction_ia}\n\n"
+        f"---\n\n"
         f"**Typologie à décrire**: \"{nom_typo}\"\n"
         f"**Section à rédiger**: \"{titre_section_propre}\"\n\n"
         f"**Notes de l'utilisateur pour cette section**:\n```\n{notes_utilisateur or 'Aucune note fournie.'}\n```\n\n"
         f"**Contexte (structure des autres sections de la typologie)**:\n{contexte_precedent or 'Aucun.'}\n\n"
         "**Exemples pertinents (extraits de CCTP existants)**:\n"
-        f"{json.dumps(exemples_pertinents, ensure_ascii=False, indent=2) if exemples_pertinents else 'Aucun.'}\n"
+        f"{_format_exemples_pour_prompt(exemples_pertinents) if exemples_pertinents else 'Aucun.'}\n"
     )
-    return instruction_ia + base_prompt
+    
+    return base_prompt
 
 def _construire_prompt_modification(action, nom_typo, titre_section_propre, texte_actuel_ia):
     action_map = {
@@ -190,7 +325,74 @@ def _construire_prompt_modification(action, nom_typo, titre_section_propre, text
         "Ta réponse doit contenir UNIQUEMENT le texte modifié, sans titre ni introduction."
     )
 
-def _retrouver_exemples_pertinents(titre_section_cible, contenu_total_exemples):
+def _retrouver_exemples_pertinents(titre_section_cible, contenu_kb_json):
+    """Recherche des exemples pertinents dans la knowledge base JSON avec le nom de section d'origine"""
+    if not contenu_kb_json:
+        return []
+    
+    exemples_trouves = []
+    try:
+        # Si c'est un fichier JSON, on le parse
+        if isinstance(contenu_kb_json, str):
+            try:
+                kb_data = json.loads(contenu_kb_json)
+            except json.JSONDecodeError:
+                # Si ce n'est pas du JSON, on utilise l'ancienne méthode
+                return _retrouver_exemples_pertinents_legacy(titre_section_cible, contenu_kb_json)
+        else:
+            kb_data = contenu_kb_json
+        
+        # Parcourir tous les fichiers dans la knowledge base
+        for filename, typologies in kb_data.items():
+            if not isinstance(typologies, list):
+                continue
+                
+            for typologie in typologies:
+                if not isinstance(typologie, dict) or 'sections' not in typologie:
+                    continue
+                    
+                for section in typologie['sections']:
+                    if not isinstance(section, dict):
+                        continue
+                        
+                    titre_section_original = section.get('titre', '').strip()
+                    contenu_section = section.get('contenu', '').strip()
+                    
+                    # Recherche par correspondance exacte ou partielle
+                    if (titre_section_original.lower() == titre_section_cible.lower() or 
+                        titre_section_cible.lower() in titre_section_original.lower() or
+                        titre_section_original.lower() in titre_section_cible.lower()):
+                        
+                        if contenu_section:
+                            exemples_trouves.append({
+                                "section": titre_section_cible,
+                                "section_originale": titre_section_original,  # Nouveau champ
+                                "source": filename,
+                                "texte": contenu_section
+                            })
+    except Exception as e:
+        print(f"Erreur lors de la récupération des exemples: {e}")
+        return []
+    
+    # Limiter les exemples
+    limited_examples = []
+    total_chars = 0
+    for ex in exemples_trouves:
+        if len(limited_examples) >= MAX_EXAMPLES_IN_PROMPT:
+            break
+        if total_chars + len(ex["texte"]) > MAX_TOTAL_EXAMPLE_CHARS:
+            chars_to_add = MAX_TOTAL_EXAMPLE_CHARS - total_chars
+            if chars_to_add > 100:
+                ex["texte"] = ex["texte"][:chars_to_add] + "..."
+                limited_examples.append(ex)
+            break
+        limited_examples.append(ex)
+        total_chars += len(ex["texte"])
+    
+    return limited_examples
+
+def _retrouver_exemples_pertinents_legacy(titre_section_cible, contenu_total_exemples):
+    """Méthode de fallback pour l'ancien format de knowledge base"""
     if not contenu_total_exemples: 
         return []
     
@@ -211,7 +413,8 @@ def _retrouver_exemples_pertinents(titre_section_cible, contenu_total_exemples):
                     contenu_section = match.group(1).strip()
                     if contenu_section: 
                         exemples_trouves.append({
-                            "section": titre_section_cible, 
+                            "section": titre_section_cible,
+                            "section_originale": titre_section_cible,  # Même nom pour legacy
                             "source": filename, 
                             "texte": contenu_section
                         })
@@ -239,43 +442,84 @@ def _retrouver_exemples_pertinents(titre_section_cible, contenu_total_exemples):
     
     return limited_examples
 
+def _format_exemples_pour_prompt(exemples):
+    """Formate les exemples pour le prompt."""
+    if not exemples:
+        return "Aucun exemple disponible."
+    
+    formatted = ""
+    for i, exemple in enumerate(exemples, 1):
+        section_originale = exemple.get('section_originale', exemple.get('section', ''))
+        source = exemple.get('source', 'source inconnue')
+        texte = exemple.get('texte', '')
+        
+        formatted += f"**Exemple {i}** (source: {source} -> {section_originale}):\n{texte}\n\n"
+    
+    return formatted.strip()
+
+def enrichir_bibliotheque_sections():
+    """Met à jour la bibliothèque de sections à partir des modèles existants."""
+    sections = set()
+    
+    try:
+        # Parcourir tous les modèles
+        for filename in os.listdir(MODELES_DIR):
+            if filename.endswith('.json'):
+                file_path = os.path.join(MODELES_DIR, filename)
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    project_data = json.load(f)
+                
+                # Extraire les titres de sections
+                for typologie in project_data:
+                    for section in typologie.get('sections', []):
+                        titre = section.get('titre', '').strip()
+                        if titre:
+                            sections.add(titre)
+        
+        # Sauvegarder la bibliothèque mise à jour
+        sections_list = sorted(list(sections))
+        with open(BIBLIOTHEQUE_SECTIONS_PATH, 'w', encoding='utf-8') as f:
+            json.dump(sections_list, f, indent=2, ensure_ascii=False)
+            
+    except Exception as e:
+        print(f"Erreur lors de l'enrichissement de la bibliothèque: {e}")
+        # Créer une bibliothèque vide si erreur
+        with open(BIBLIOTHEQUE_SECTIONS_PATH, 'w', encoding='utf-8') as f:
+            json.dump([], f)
+
 def _render_cross_references_for_export(text, chapter_map):
+    """Rend les références croisées pour l'export."""
+    if not text:
+        return ""
+    
     def replace_func(match):
-        nom_typo, nom_section = match.groups()[1], match.groups()[2]
+        nom_typo = match.group(1)
+        nom_section = match.group(2)
+        
         for item in chapter_map:
             if item['nom_typo'] == nom_typo and item['titre_section'] == nom_section:
                 return f"(voir section {item['number']} {nom_section})"
         return f"(référence introuvable: {nom_typo}|{nom_section})"
+    
+    # Transformer uniquement les références non encore transformées
     return re.sub(CROSS_REF_PATTERN, replace_func, text)
 
-def enrichir_bibliotheque_sections():
-    """Charge les sections de la bibliothèque et l'enrichit avec celles des modèles existants."""
-    sections_set = set()
-    if os.path.exists(BIBLIOTHEQUE_SECTIONS_PATH):
-        try:
-            with open(BIBLIOTHEQUE_SECTIONS_PATH, "r", encoding="utf-8") as f:
-                sections_set.update(json.load(f))
-        except (json.JSONDecodeError, IOError):
-            pass # Fichier vide ou corrompu, on continue
-
-    # Enrichir avec les sections des modèles existants
-    try:
-        for nom_fichier in os.listdir(MODELES_DIR):
-            if not nom_fichier.endswith(".json"): continue
-            chemin = os.path.join(MODELES_DIR, nom_fichier)
-            try:
-                with open(chemin, "r", encoding="utf-8") as f:
-                    donnees = json.load(f)
-                    for typo in donnees:
-                        for section in typo.get("sections", []):
-                            titre = section.get("titre", "").strip()
-                            if titre: sections_set.add(titre)
-            except Exception: continue
-    except Exception: pass
-
-    # Sauvegarder la liste mise à jour
-    with open(BIBLIOTHEQUE_SECTIONS_PATH, "w", encoding="utf-8") as f:
-        json.dump(sorted(list(sections_set)), f, indent=2, ensure_ascii=False)
+def _clean_text_for_export(text):
+    """Nettoie le texte pour l'export en évitant les doublons."""
+    if not text:
+        return ""
+    
+    # Supprimer toutes les balises HTML
+    text = re.sub(r'<[^>]+>', '', text)
+    
+    # Nettoyer les entités HTML
+    text = text.replace('&lt;', '<').replace('&gt;', '>')
+    
+    # Nettoyer les espaces multiples et les retours à la ligne multiples
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+    
+    return text.strip()
 
 # --- ROUTES DE L'API (les points d'accès pour le frontend) ---
 def get_kb_status():
@@ -389,8 +633,14 @@ def handle_generation():
         contexte_summarized = data.get('contexteSummarized', '')
         custom_instruction = data.get('customInstruction', '')
 
-        contenu_kb = ""
-        if os.path.exists(KNOWLEDGE_BASE_PATH):
+        contenu_kb = {}
+        # Charger la knowledge base JSON
+        kb_json_path = os.path.join(KNOWLEDGE_BASE_DIR, "knowledge_base.json")
+        if os.path.exists(kb_json_path):
+            with open(kb_json_path, "r", encoding="utf-8") as f:
+                contenu_kb = json.load(f)
+        # Fallback vers le format texte si JSON n'existe pas
+        elif os.path.exists(KNOWLEDGE_BASE_PATH):
             with open(KNOWLEDGE_BASE_PATH, "r", encoding="utf-8") as f:
                 contenu_kb = f.read()
         
@@ -409,11 +659,46 @@ def handle_generation():
             temperature=0.3,
         )
         texte_genere = response.choices[0].message.content.strip()
+
+        # --- Nettoyage du texte généré (robuste) ---
+        def clean_ai_output(text):
+            try:
+                lines = text.splitlines()
+                cleaned = []
+                for line in lines:
+                    l = line.strip()
+                    # Supprimer les séparateurs "---"
+                    if l == "---":
+                        continue
+                    # Supprimer les titres en gras markdown (**TITRE**)
+                    if re.match(r"^\*{2}.+\*{2}$", l):
+                        continue
+                    # Supprimer les titres tout en majuscules (hors phrases normales)
+                    if l.isupper() and len(l) < 80:
+                        continue
+                    # Supprimer les titres type markdown (# ou ## ...)
+                    if re.match(r"^#+\s", l):
+                        continue
+                    # Supprimer les lignes vides
+                    if not l:
+                        continue
+                    cleaned.append(line)
+                return "\n".join(cleaned).strip()
+            except Exception as e:
+                print(f"[CCTP] Erreur nettoyage texte IA: {e}")
+                return text.strip() if text else ""
+
+        texte_genere = clean_ai_output(texte_genere)
+        # Si le texte est vide, retourne une chaîne vide proprement
+        if texte_genere is None:
+            texte_genere = ""
         return jsonify({"text": texte_genere})
 
     except KeyError as e:
+        print(f"[CCTP] Erreur KeyError: {e}")
         return jsonify({"error": f"Donnée manquante dans la requête: {e}"}), 400
     except Exception as e:
+        print(f"[CCTP] Erreur lors de la génération OpenAI: {e}")
         return jsonify({"error": f"Erreur lors de la génération OpenAI: {str(e)}"}), 500
 
 @app.route('/api/export/pdf', methods=['POST'])
@@ -423,36 +708,63 @@ def export_pdf():
     project_data = data.get('project', [])
     previews_data = data.get('previews', {})
     chapter_map = data.get('chapterMap', [])
+    include_ai_notes = data.get('includeAiNotes', True)  # Par défaut, inclure les notes IA
 
     try:
         pdf_path = os.path.join(BASE_DIR, 'cctp_export.pdf')
         pdf = PDF('P', 'mm', 'A4', chapter_map=chapter_map)
-        pdf.alias_nb_pages(); pdf.set_auto_page_break(auto=True, margin=15); pdf.add_page()
+        pdf.alias_nb_pages()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
         
         for typo_idx, typo_data in enumerate(project_data):
             nom_typo = typo_data.get("nomTypologie")
             typo_previews = previews_data.get(nom_typo, {})
-            if not any(typo_previews.values()): continue
-            if pdf.get_y() > 230 and pdf.page_no() > 0: pdf.add_page()
+            if not any(typo_previews.values()): 
+                continue
+            if pdf.get_y() > 230 and pdf.page_no() > 0: 
+                pdf.add_page()
             pdf.add_typology_title(typo_idx, nom_typo)
-            
             for section in typo_data.get("sections", []):
                 titre_section = section.get("titre")
-                # Trouver le numéro de chapitre correspondant
-                num_chapitre = next((item['number'] for item in chapter_map if item['nom_typo'] == nom_typo and item['titre_section'] == titre_section), "")
+                num_chapitre = next((item['number'] for item in chapter_map 
+                                   if item['nom_typo'] == nom_typo and item['titre_section'] == titre_section), "")
                 texte_genere = typo_previews.get(titre_section)
                 if texte_genere:
-                    if pdf.get_y() > 250: pdf.add_page()
+                    if pdf.get_y() > 250: 
+                        pdf.add_page()
                     pdf.add_section_title(num_chapitre, titre_section)
-                    pdf.add_body_text(texte_genere)
-        
+                    
+                    # Séparer les parties du texte
+                    main_text, placeholders, exemples, crossrefs = extract_parts_for_export(texte_genere, chapter_map, include_ai_notes)
+                    
+                    # Écrire le texte principal
+                    if main_text:
+                        pdf.add_body_text(main_text)
+                    
+                    # Ajouter les éléments supplémentaires s'ils existent et si demandé
+                    if include_ai_notes:
+                        if placeholders:
+                            pdf.add_body_text("\nÀ compléter :")
+                            for placeholder in placeholders:
+                                pdf.add_body_text(f"• {placeholder}")
+                        
+                        if exemples:
+                            pdf.add_body_text("\nExemples :")
+                            for exemple in exemples:
+                                pdf.add_body_text(f"• {exemple}")
+                    
+                    if crossrefs:
+                        pdf.add_body_text("\nRéférences croisées :")
+                        for crossref in crossrefs:
+                            pdf.add_body_text(f"• {crossref}")
         pdf.output(pdf_path)
         return send_file(pdf_path, as_attachment=True, download_name=f"CCTP_{datetime.now().strftime('%Y%m%d')}.pdf")
     except Exception as e:
         print(f"Erreur d'export PDF: {e}")
         return jsonify({"error": f"Erreur lors de la génération du PDF: {str(e)}"}), 500
 
-@app.route('/api/export/word', methods=['POST'])
+@app.route('/api/export/docx', methods=['POST'])
 def export_word():
     """Génère un fichier Word et le renvoie pour téléchargement."""
     if not DOCX_AVAILABLE:
@@ -462,43 +774,63 @@ def export_word():
     project_data = data.get('project', [])
     previews_data = data.get('previews', {})
     chapter_map = data.get('chapterMap', [])
+    include_ai_notes = data.get('includeAiNotes', True)  # Par défaut, inclure les notes IA
 
     try:
         word_path = os.path.join(BASE_DIR, 'cctp_export.docx')
         doc = Document()
-        style = doc.styles['Normal']; font = style.font; font.name = 'Calibri'; font.size = Pt(11)
-        placeholder_color, reference_color, cross_ref_color = RGBColor(220, 53, 69), RGBColor(40, 167, 69), RGBColor(0, 123, 255)
+        style = doc.styles['Normal']
+        font = style.font
+        font.name = 'Calibri'
+        font.size = Pt(11)
+        
+        placeholder_color = RGBColor(220, 53, 69)
+        reference_color = RGBColor(40, 167, 69)
+        cross_ref_color = RGBColor(0, 123, 255)
         
         for typo_idx, typo_data in enumerate(project_data):
             nom_typo = typo_data.get("nomTypologie")
             typo_previews = previews_data.get(nom_typo, {})
-            if not any(typo_previews.values()): continue
+            if not any(typo_previews.values()): 
+                continue
             doc.add_heading(f"{typo_idx + 1}. {nom_typo}", level=1)
-            
             for section in typo_data.get("sections", []):
                 titre_section = section.get("titre")
-                num_chapitre = next((item['number'] for item in chapter_map if item['nom_typo'] == nom_typo and item['titre_section'] == titre_section), "")
+                num_chapitre = next((item['number'] for item in chapter_map 
+                                   if item['nom_typo'] == nom_typo and item['titre_section'] == titre_section), "")
                 texte_genere = typo_previews.get(titre_section)
                 
                 if texte_genere:
                     doc.add_heading(f"{num_chapitre} {titre_section}", level=2)
-                    texte_genere_rendered = _render_cross_references_for_export(texte_genere, chapter_map)
                     
-                    for line in texte_genere_rendered.split('\n'):
-                        p = doc.add_paragraph()
-                        all_patterns = f'({PLACEHOLDER_PATTERN}|{REFERENCE_PATTERN}|' + r'(\(voir section .*?\))' + ')'
-                        parts = re.split(all_patterns, line)
-                        for part in filter(None, parts):
-                            run = p.add_run(part)
-                            if part.startswith('[') and any(kw in part for kw in ["À PRÉCISER", "À VALIDER", "COMPLÉTER"]):
-                                run.bold = True; run.font.color.rgb = placeholder_color
-                            elif part.startswith('(voir exemple CCTP'):
-                                run.italic = True; run.font.color.rgb = reference_color
-                            elif part.startswith('(voir section '):
-                                run.italic = True; run.font.color.rgb = cross_ref_color
+                    # Séparer les parties du texte
+                    main_text, placeholders, exemples, crossrefs = extract_parts_for_export(texte_genere, chapter_map, include_ai_notes)
+                    
+                    # Texte principal
+                    if main_text:
+                        doc.add_paragraph(main_text)
+                    
+                    # Ajouter les éléments supplémentaires s'ils existent et si demandé
+                    if include_ai_notes:
+                        # À compléter
+                        if placeholders:
+                            doc.add_paragraph("À compléter :")
+                            for placeholder in placeholders:
+                                doc.add_paragraph(f"• {placeholder}")
+                        
+                        # Exemples
+                        if exemples:
+                            doc.add_paragraph("Exemples :")
+                            for exemple in exemples:
+                                doc.add_paragraph(f"• {exemple}")
+                    
+                    # Références croisées
+                    if crossrefs:
+                        doc.add_paragraph("Références croisées :")
+                        for crossref in crossrefs:
+                            doc.add_paragraph(f"• {crossref}")
         doc.save(word_path)
         return send_file(word_path, as_attachment=True, download_name=f"CCTP_{datetime.now().strftime('%Y%m%d')}.docx")
-
     except Exception as e:
         print(f"Erreur d'export Word: {e}")
         return jsonify({"error": f"Erreur lors de la génération du Word: {str(e)}"}), 500
@@ -706,7 +1038,6 @@ def _parse_document_structure(text):
                 # Sinon, c'est du contenu
                 has_content_after = True
                 break
-            
             # Si on a du contenu après ce titre, c'est une vraie section
             if has_content_after:
                 # Sauvegarder la section précédente s'il y en a une
@@ -766,6 +1097,91 @@ def _parse_document_structure(text):
         })
     
     return sections
+
+@app.route('/api/models/<model_name>/typologies/<int:typo_index>/sections/<int:section_index>', methods=['DELETE'])
+def delete_section(model_name, typo_index, section_index):
+    """Supprime une section d'une typologie dans un modèle."""
+    project_path = os.path.join(MODELES_DIR, f"{model_name}.json")
+    previews_path = os.path.join(PREVIEWS_DIR, f"{model_name}_previews.json")
+
+    if not os.path.exists(project_path):
+        return jsonify({"error": "Modèle non trouvé."}), 404
+
+    try:
+        # Charger les données du projet
+        with open(project_path, 'r', encoding='utf-8') as f:
+            project_data = json.load(f)
+        
+        # Vérifier que la typologie existe
+        if typo_index >= len(project_data):
+            return jsonify({"error": "Index de typologie invalide."}), 400
+        
+        typologie = project_data[typo_index]
+        sections = typologie.get('sections', [])
+        
+        # Vérifier que la section existe
+        if section_index >= len(sections):
+            return jsonify({"error": "Index de section invalide."}), 400
+        
+        # Récupérer le titre de la section à supprimer pour nettoyer les previews
+        section_titre = sections[section_index].get('titre', '')
+        nom_typologie = typologie.get('nomTypologie', '')
+        
+        # Supprimer la section
+        sections.pop(section_index)
+        
+        # Sauvegarder le projet modifié
+        with open(project_path, 'w', encoding='utf-8') as f:
+            json.dump(project_data, f, indent=2, ensure_ascii=False)
+        
+        # Nettoyer les previews associées
+        previews_data = {}
+        if os.path.exists(previews_path):
+            with open(previews_path, 'r', encoding='utf-8') as f:
+                previews_data = json.load(f)
+        
+        # Supprimer la preview de la section supprimée
+        if nom_typologie in previews_data and section_titre in previews_data[nom_typologie]:
+            del previews_data[nom_typologie][section_titre]
+        
+        # Sauvegarder les previews modifiées
+        with open(previews_path, 'w', encoding='utf-8') as f:
+            json.dump(previews_data, f, indent=2, ensure_ascii=False)
+        
+        # Mettre à jour la bibliothèque de sections
+        enrichir_bibliotheque_sections()
+        
+        return jsonify({
+            "message": f"Section '{section_titre}' supprimée avec succès.",
+            "project": project_data,
+            "previews": previews_data
+        })
+        
+    except Exception as e:
+        return jsonify({"error": f"Erreur lors de la suppression de la section: {str(e)}"}), 500
+
+@app.route('/api/improve-prompt', methods=['POST'])
+def improve_prompt():
+    """Ajoute une instruction supplémentaire au prompt de base de VF_LOW_TOKEN."""
+    if not openai.api_key:
+        return jsonify({"error": "La clé API OpenAI n'est pas configurée sur le serveur."}), 503
+
+    data = request.json
+    modification = data.get('modification', '')
+
+    if not modification:
+        return jsonify({"error": "La modification est requise."}), 400
+
+    try:
+        # Obtenir le prompt de base de VF_LOW_TOKEN
+        base_prompt = _get_base_prompt_generation()
+        
+        # Ajouter l'instruction supplémentaire au prompt de base
+        improved_prompt = _apply_prompt_modifications(base_prompt, modification)
+        
+        return jsonify({"improvedPrompt": improved_prompt})
+    except Exception as e:
+        return jsonify({"error": f"Erreur lors de l'amélioration du prompt: {str(e)}"}), 500
 
 # --- Lancement de l'application ---
 if __name__ == '__main__':

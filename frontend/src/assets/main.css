@@ -101,7 +101,189 @@ button.danger {
     color: var(--button-accent-fg);
     border-color: var(--button-danger-bg);
 }
+button.warning {
+    background-color: #ffc107;
+    color: #212529;
+    border-color: #ffc107;
+}
+button.warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
 
-.placeholder { color: var(--placeholder-fg); font-weight: bold; }
-.reference { color: var(--reference-fg); font-style: italic; }
-.cross_ref { color: var(--cross-ref-fg); font-style: italic; }
+.placeholder { 
+  color: var(--placeholder-fg) !important; 
+  font-weight: bold; 
+  background: none !important;
+}
+
+.reference { 
+  color: var(--reference-fg) !important; 
+  font-style: italic; 
+  background: none !important;
+}
+
+.cross_ref { 
+  color: var(--cross-ref-fg) !important; 
+  font-style: italic; 
+  background: none !important;
+}
+
+.section-editor {
+  border: 1px solid var(--border-color);
+  padding: 15px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.section-header { display: flex; justify-content: space-between; align-items: center; }
+.section-controls { display: flex; gap: 5px; }
+.button-group { display: flex; gap: 5px; }
+
+/* --- Styles pour l'en-tête de typologie --- */
+.typology-header {
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.typology-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.typology-controls input {
+  flex: 1;
+  margin: 0;
+}
+
+.typology-buttons {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.typology-buttons button {
+  padding: 8px 10px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.typology-buttons button.small {
+  padding: 6px 8px;
+  font-size: 0.8rem;
+}
+
+.typology-buttons button:nth-child(3) {
+  min-width: auto;
+  white-space: nowrap;
+}
+
+.typology-buttons button:nth-child(4) {
+  min-width: auto;
+  white-space: nowrap;
+}
+
+.preview-content {
+    background-color: var(--app-bg);
+    padding: 15px;
+    border-radius: 5px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* --- Styles pour la section de sortie IA --- */
+.ai-output-section {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ai-textarea-container {
+  position: relative;
+}
+
+.ai-textarea-container textarea {
+  width: 100%;
+  padding-right: 35px; /* Laisser de l'espace pour le bouton */
+}
+
+.ai-clear-button {
+  position: absolute;
+  top: 8px;
+  right: 20px; /* Modifié de 8px à 12px pour décaler vers la gauche */
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  border-radius: 50%;
+  background-color: var(--button-danger-bg);
+  color: var(--button-accent-fg);
+  border: none;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ai-clear-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.ai-clear-button:active {
+  transform: scale(0.95);
+}
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+label { font-weight: 500; font-size: 0.9rem; }
+
+/* --- Styles pour la sélection de modèle --- */
+.model-selection {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.model-selection select {
+  flex: 1;
+  margin: 0;
+}
+
+.model-selection button {
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/* --- Styles pour le modal de création de modèle --- */
+.create-model-modal {
+  width: 400px;
+  max-width: 90%;
+}
+
+.create-model-modal h3 {
+  margin: 0 0 15px 0;
+  padding: 0 0 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--header-fg);
+}
+
+.create-model-modal .form-group {
+  margin-bottom: 15px;
+}
+
+.create-model-modal input {
+  width: 100%;
+  padding: 10px;
+  margin: 0;
+}

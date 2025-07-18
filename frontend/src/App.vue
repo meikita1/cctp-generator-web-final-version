@@ -25,9 +25,12 @@ const activeTypologyIndex = ref(null);
 const isLoading = ref(false); // Pour les chargements généraux
 const isExporting = ref(false); // Pour les exports
 const isAnalyzingPdfs = ref(false);
-const theme = ref('Clair');
+const theme = ref('Sombre');
 const previewScope = ref('Tout');
 const searchTerm = ref('');
+const showCreateModel = ref(false);
+const newModelName = ref('');
+const isCreatingModel = ref(false);
 const analysisStatus = ref({
   running: false,
   progress: 0,
@@ -41,6 +44,40 @@ const directoryBrowser = ref({
   items: [],
   pdf_count: 0
 });
+const showPromptEditor = ref(false);
+const systemPrompt = ref('');
+const promptModification = ref('');
+const isLoadingPrompt = ref(false);
+const isGeneratingPrompt = ref(false);
+const includeAiNotes = ref(true); // Option pour inclure les notes IA dans l'export
+
+// Prompt par défaut (constante)
+const DEFAULT_SYSTEM_PROMPT = `Vous êtes un assistant expert en rédaction de CCTP (Cahier des Clauses Techniques Particulières) pour le secteur du bâtiment.
+
+CONTEXTE :
+- Vous aidez à rédiger des sections de CCTP pour différentes typologies de bâtiments
+- Vous devez produire un contenu technique précis, conforme aux normes et réglementations
+- Le contenu doit être professionnel et adapté au contexte du marché français
+
+INSTRUCTIONS :
+1. Analysez le nom de la typologie et le titre de la section
+2. Utilisez les notes fournies comme guide principal
+3. Rédigez un contenu technique détaillé et structuré
+4. Respectez la terminologie technique du bâtiment
+5. Incluez les références aux normes pertinentes si nécessaire
+6. Adaptez le niveau de détail selon le contexte
+
+STYLE :
+- Ton professionnel et technique
+- Phrases claires et précises
+- Structure logique avec paragraphes bien organisés
+- Utilisation du vocabulaire technique approprié
+
+CONTRAINTES :
+- Restez factuel et technique
+- Évitez les répétitions inutiles
+- Adaptez le contenu à la typologie spécifique
+- Intégrez les notes utilisateur de manière cohérente`;
 
 // --- LOGIQUE CALCULÉE (Computed Properties) ---
 const activeTypology = computed(() => {
@@ -90,23 +127,48 @@ const renderedPreviewHTML = computed(() => {
             if (text) {
                 const chapterInfo = chapterMap.value.find(c => c.nom_typo === typo.nomTypologie && c.titre_section === section.titre);
                 html += `<h3>${chapterInfo.number} ${section.titre}</h3>`;
-                
-                // Échapper le HTML pour la sécurité avant de faire nos remplacements
-                text = text.replace(/</g, "<").replace(/>/g, ">");
-                
-                // Remplacer les placeholders et références par des spans stylisés
-                text = text.replace(/(\[(?:À PRÉCISER|À VALIDER|COMPLÉTER|RÉFÉRENCE À INDIQUER).*?\])/g, '<span class="placeholder">$1</span>');
-                text = text.replace(/(\(voir exemple CCTP .*?\))/g, '<span class="reference">$1</span>');
-                // Gérer les références croisées
-                text = text.replace(/\{\{REF:(.*?)\|(.*?)\}\}/g, (match, typoName, sectionName) => {
-                    const ref = chapterMap.value.find(c => c.nom_typo === typoName && c.titre_section === sectionName);
-                    if (ref) {
-                        return `<span class="cross_ref">(voir section ${ref.number} ${sectionName})</span>`;
-                    }
-                    return `<span class="placeholder">(référence introuvable)</span>`;
+
+                // Séparer le texte principal, les placeholders, les exemples et les cross-ref
+                let mainText = text;
+                let placeholders = [];
+                let exemples = [];
+                let crossrefs = [];
+
+                // Extraire les placeholders [À ...]
+                mainText = mainText.replace(/(\[(?:À PRÉCISER|À VALIDER|COMPLÉTER|RÉFÉRENCE À INDIQUER).*?\])/g, (m) => {
+                    if (!placeholders.includes(m)) placeholders.push(m);
+                    return '';
                 });
-                
-                html += `<p>${text.replace(/\n/g, '<br>')}</p>`;
+
+                // Extraire les exemples (voir exemple CCTP ...)
+                mainText = mainText.replace(/(\(voir exemple CCTP .*?\))/g, (m) => {
+                    if (!exemples.includes(m)) exemples.push(m);
+                    return '';
+                });
+
+                // Extraire les cross-ref {{REF:...|...}}
+                mainText = mainText.replace(/\{\{REF:(.*?)\|(.*?)\}\}/g, (match, typoName, sectionName) => {
+                    const ref = chapterMap.value.find(c => c.nom_typo === typoName && c.titre_section === sectionName);
+                    const label = ref ? `(voir section ${ref.number} ${sectionName})` : `(référence introuvable)`;
+                    if (!crossrefs.includes(label)) crossrefs.push(label);
+                    return '';
+                });
+
+                // Nettoyer le texte principal (supprimer les espaces en trop)
+                mainText = mainText.trim();
+
+                // Construire le HTML SANS balise ni couleur
+                html += `<p>${mainText.replace(/\n/g, '<br>')}`;
+                if (placeholders.length > 0) {
+                    html += `<br><br>À compléter :<br>${placeholders.join('<br>')}`;
+                }
+                if (exemples.length > 0) {
+                    html += `<br><br>Exemples :<br>${exemples.join('<br>')}`;
+                }
+                if (crossrefs.length > 0) {
+                    html += `<br><br>Références croisées :<br>${crossrefs.join('<br>')}`;
+                }
+                html += `</p>`;
             }
         });
     });
@@ -203,13 +265,24 @@ async function generateSectionContent(typo, section, action = 'génération du c
 async function exportFile(format) {
   isExporting.value = true;
   try {
+    // Créer une version nettoyée des données sans les transformations HTML
+    const cleanPreviewsData = {};
+    Object.keys(previewsData.value).forEach(typologyName => {
+      cleanPreviewsData[typologyName] = {};
+      Object.keys(previewsData.value[typologyName]).forEach(sectionTitle => {
+        // Nettoyer les doublons avant export
+        cleanPreviewsData[typologyName][sectionTitle] = cleanExportText(previewsData.value[typologyName][sectionTitle]);
+      });
+    });
+
     const response = await fetch(`${API_URL}/api/export/${format}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         project: projectData.value,
-        previews: previewsData.value,
-        chapterMap: chapterMap.value
+        previews: cleanPreviewsData,
+        chapterMap: chapterMap.value,
+        includeAiNotes: includeAiNotes.value
       })
     });
     if (!response.ok) throw new Error('La génération du fichier a échoué sur le serveur.');
@@ -291,6 +364,96 @@ async function analyzePdfs() {
   await showPdfAnalysisDialog();
 }
 
+async function loadSystemPrompt() {
+  isLoadingPrompt.value = true;
+  try {
+    const response = await fetch(`${API_URL}/api/system-prompt`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const data = await response.json();
+    systemPrompt.value = data.prompt || getDefaultPrompt();
+  } catch (error) {
+    console.log('Endpoint non disponible, utilisation du prompt par défaut');
+    systemPrompt.value = getDefaultPrompt();
+  } finally {
+    isLoadingPrompt.value = false;
+  }
+}
+
+function getDefaultPrompt() {
+  return DEFAULT_SYSTEM_PROMPT;
+}
+
+function resetPromptToDefault() {
+  if (confirm('Êtes-vous sûr de vouloir réinitialiser le prompt à sa valeur par défaut ? Toutes vos modifications seront perdues.')) {
+    systemPrompt.value = getDefaultPrompt();
+    alert('Prompt réinitialisé à sa valeur par défaut.');
+  }
+}
+
+async function saveSystemPrompt() {
+  isLoadingPrompt.value = true;
+  try {
+    const response = await fetch(`${API_URL}/api/system-prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: systemPrompt.value })
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    alert('Prompt système sauvegardé avec succès !');
+  } catch (error) {
+    alert('Fonctionnalité non disponible sur le serveur. Le prompt sera utilisé localement.');
+    console.log('Sauvegarde du prompt non disponible:', error);
+  } finally {
+    isLoadingPrompt.value = false;
+  }
+}
+
+async function generatePromptImprovement() {
+  if (!promptModification.value.trim()) {
+    alert('Veuillez saisir une modification ou amélioration à apporter au prompt.');
+    return;
+  }
+  
+  isGeneratingPrompt.value = true;
+  try {
+    const response = await fetch(`${API_URL}/api/improve-prompt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        currentPrompt: systemPrompt.value,
+        modification: promptModification.value 
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    
+    systemPrompt.value = data.improvedPrompt;
+    promptModification.value = '';
+    alert('Prompt amélioré avec succès !');
+  } catch (error) {
+    alert('Fonctionnalité non disponible sur le serveur. Vous pouvez modifier le prompt manuellement.');
+    console.log('Amélioration du prompt non disponible:', error);
+  } finally {
+    isGeneratingPrompt.value = false;
+  }
+}
+
+function togglePromptEditor() {
+  showPromptEditor.value = !showPromptEditor.value;
+  if (showPromptEditor.value && !systemPrompt.value) {
+    loadSystemPrompt();
+  }
+}
+
 async function pollAnalysisStatus() {
   try {
     const response = await fetch(`${API_URL}/api/analyze-pdfs/status`);
@@ -324,12 +487,124 @@ function addTypology() {
   activeTypologyIndex.value = projectData.value.length - 1;
 }
 
+function duplicateTypology() {
+  if (activeTypology.value) {
+    const duplicatedTypology = JSON.parse(JSON.stringify(activeTypology.value));
+    duplicatedTypology.nomTypologie = `${duplicatedTypology.nomTypologie} (Copie)`;
+    projectData.value.push(duplicatedTypology);
+    activeTypologyIndex.value = projectData.value.length - 1;
+  }
+}
+
 function deleteTypology(index) {
   if (confirm(`Êtes-vous sûr de vouloir supprimer la typologie "${projectData.value[index].nomTypologie}" ?`)) {
     projectData.value.splice(index, 1);
     if (activeTypologyIndex.value >= index) {
       activeTypologyIndex.value = activeTypologyIndex.value > 0 ? activeTypologyIndex.value - 1 : null;
     }
+  }
+}
+
+function clearGeneratedContent() {
+  if (activeTypology.value && confirm(`Êtes-vous sûr de vouloir supprimer tout le contenu généré par l'IA pour la typologie "${activeTypology.value.nomTypologie}" ?`)) {
+    const typologyName = activeTypology.value.nomTypologie;
+    if (previewsData.value[typologyName]) {
+      previewsData.value[typologyName] = {};
+    }
+    alert('Contenu généré par l\'IA supprimé pour cette typologie.');
+  }
+}
+
+function clearSectionContent(sectionTitle) {
+  if (activeTypology.value && confirm(`Êtes-vous sûr de vouloir supprimer le contenu généré par l'IA pour la section "${sectionTitle}" ?`)) {
+    const typologyName = activeTypology.value.nomTypologie;
+    if (previewsData.value[typologyName] && previewsData.value[typologyName][sectionTitle]) {
+      delete previewsData.value[typologyName][sectionTitle];
+    }
+  }
+}
+
+async function generateAllSections() {
+  if (!activeTypology.value || !activeTypology.value.sections || activeTypology.value.sections.length === 0) {
+    alert('Aucune section à générer pour cette typologie.');
+    return;
+  }
+  
+  if (!confirm(`Êtes-vous sûr de vouloir générer toutes les sections de la typologie "${activeTypology.value.nomTypologie}" ? Cela peut prendre plusieurs minutes.`)) {
+    return;
+  }
+  
+  const totalSections = activeTypology.value.sections.length;
+  let completedSections = 0;
+  
+  for (const section of activeTypology.value.sections) {
+    if (section.isGenerating) continue; // Ignorer les sections déjà en cours de génération
+    
+    try {
+      await generateSectionContent(activeTypology.value, section);
+      completedSections++;
+    } catch (error) {
+      console.error(`Erreur lors de la génération de la section "${section.titre}":`, error);
+      // Continuer avec les autres sections même si une échoue
+    }
+  }
+  
+  alert(`Génération terminée : ${completedSections}/${totalSections} sections générées avec succès.`);
+}
+
+// --- MÉTHODES SUPPLÉMENTAIRES ---
+function deleteSection(sectionIndex) {
+    if (activeTypology.value && activeTypology.value.sections) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer la section "${activeTypology.value.sections[sectionIndex].titre}" ?`)) {
+            // Supprimer également le contenu généré pour cette section
+            const typologyName = activeTypology.value.nomTypologie;
+            const sectionTitle = activeTypology.value.sections[sectionIndex].titre;
+            
+            if (previewsData.value[typologyName] && previewsData.value[typologyName][sectionTitle]) {
+                delete previewsData.value[typologyName][sectionTitle];
+            }
+            
+            // Supprimer la section de la liste
+            activeTypology.value.sections.splice(sectionIndex, 1);
+        }
+    }
+}
+
+async function createNewModel() {
+  if (!newModelName.value.trim()) {
+    alert('Veuillez saisir un nom pour le nouveau modèle.');
+    return;
+  }
+  
+  isCreatingModel.value = true;
+  try {
+    const response = await fetch(`${API_URL}/api/models`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newModelName.value.trim() })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Erreur lors de la création du modèle');
+    }
+    
+    // Recharger la liste des modèles
+    await fetchModels();
+    
+    // Charger le nouveau modèle
+    await loadModel(newModelName.value.trim());
+    
+    // Réinitialiser et fermer le modal
+    newModelName.value = '';
+    showCreateModel.value = false;
+    
+    alert(`Modèle "${newModelName.value.trim()}" créé avec succès !`);
+    
+  } catch (error) {
+    alert(`Erreur: ${error.message}`);
+  } finally {
+    isCreatingModel.value = false;
   }
 }
 
@@ -341,32 +616,101 @@ function addSectionFromSearch(sectionName) {
     }
 }
 
-function deleteSection(sectionIndex) {
-    if (activeTypology.value) {
-        activeTypology.value.sections.splice(sectionIndex, 1);
+// Fonction pour ajouter une section personnalisée
+function addCustomSection(sectionName) {
+  if (sectionName && activeTypology.value) {
+    const trimmedName = sectionName.trim();
+    if (trimmedName) {
+      if (!activeTypology.value.sections) activeTypology.value.sections = [];
+      activeTypology.value.sections.push({ titre: trimmedName, contenu: "" });
+      
+      // Proposer d'ajouter à la bibliothèque
+      if (confirm(`Section "${trimmedName}" créée ! Voulez-vous l'ajouter à la bibliothèque pour la réutiliser dans d'autres projets ?`)) {
+        addSectionToLibrary(trimmedName);
+      }
+      
+      searchTerm.value = '';
     }
+  }
 }
 
-function moveItem(array, index, direction) {
-  const newIndex = index + direction;
-  if (newIndex < 0 || newIndex >= array.length) return;
-  const element = array.splice(index, 1)[0];
-  array.splice(newIndex, 0, element);
-  return newIndex;
+// Fonction pour ajouter une section vide
+function addEmptySection() {
+  if (activeTypology.value) {
+    if (!activeTypology.value.sections) activeTypology.value.sections = [];
+    activeTypology.value.sections.push({ titre: "Nouvelle section", contenu: "" });
+  }
 }
 
-function moveTypology(index, direction) {
-  const newIndex = moveItem(projectData.value, index, direction);
-  activeTypologyIndex.value = newIndex;
-}
-
+// Fonction pour changer le thème
 function toggleTheme() {
-    theme.value = theme.value === 'Clair' ? 'Sombre' : 'Clair';
-    document.body.dataset.theme = theme.value.toLowerCase();
+  theme.value = theme.value === 'Sombre' ? 'Clair' : 'Sombre';
+  document.body.dataset.theme = theme.value.toLowerCase();
+  localStorage.setItem('theme', theme.value);
+}
+
+// Fonction pour vérifier si une section existe dans la bibliothèque
+function isSectionInLibrary(sectionTitle) {
+  return sectionsLibrary.value.some(s => s.toLowerCase() === sectionTitle.toLowerCase());
+}
+
+// Fonction pour proposer d'ajouter une section à la bibliothèque
+function suggestAddingToLibrary(sectionTitle) {
+  if (!isSectionInLibrary(sectionTitle)) {
+    if (confirm(`La section "${sectionTitle}" n'existe pas dans la bibliothèque. Voulez-vous l'ajouter pour la réutiliser dans d'autres projets ?`)) {
+      addSectionToLibrary(sectionTitle);
+    }
+  }
+}
+
+// Fonction pour ajouter une section à la bibliothèque
+function addSectionToLibrary(sectionTitle) {
+  if (!isSectionInLibrary(sectionTitle)) {
+    sectionsLibrary.value.push(sectionTitle);
+    // Trier la bibliothèque pour maintenir l'ordre alphabétique
+    sectionsLibrary.value.sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+    
+    // Envoyer une notification visuelle
+    alert(`Section "${sectionTitle}" ajoutée à la bibliothèque avec succès !`);
+    
+    // Note: La bibliothèque sera sauvegardée automatiquement lors de la prochaine sauvegarde du projet
+    // car le backend met à jour la bibliothèque quand il sauvegarde les projets
+  }
+}
+
+// Fonction pour vérifier et suggérer d'ajouter une section lors de la modification du titre
+function checkAndSuggestSection(sectionTitle) {
+  if (sectionTitle && sectionTitle.trim()) {
+    const trimmedTitle = sectionTitle.trim();
+    // Vérifier si la section n'existe pas et si elle n'est pas vide
+    if (!isSectionInLibrary(trimmedTitle) && trimmedTitle.length > 2) {
+      // Attendre un peu avant de proposer pour éviter les propositions trop fréquentes
+      setTimeout(() => {
+        if (confirm(`La section "${trimmedTitle}" n'existe pas dans la bibliothèque. Voulez-vous l'ajouter pour la réutiliser dans d'autres projets ?`)) {
+          addSectionToLibrary(trimmedTitle);
+        }
+      }, 500);
+    }
+  }
+}
+
+// Fonction utilitaire pour nettoyer les doublons dans le texte (placeholders/références)
+function cleanExportText(text) {
+  if (!text) return "";
+  // Supprimer les doublons de type "[À VALIDER ...][À VALIDER ...]" même séparés par des espaces ou retours à la ligne
+  text = text.replace(/(\[(?:À PRÉCISER|À VALIDER|COMPLÉTER|RÉFÉRENCE À INDIQUER)[^\]]*\])([\s\r\n]*)\1+/g, '$1');
+  // Supprimer les doublons de références d'exemples même séparés par des espaces ou retours à la ligne
+  text = text.replace(/(\(voir exemple CCTP[^\)]*\))([\s\r\n]*)\1+/g, '$1');
+  return text;
 }
 
 // --- CYCLE DE VIE ---
 onMounted(() => {
+  // Charger le thème depuis localStorage ou utiliser 'Sombre' par défaut
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme && (savedTheme === 'Sombre' || savedTheme === 'Clair')) {
+    theme.value = savedTheme;
+  }
   document.body.dataset.theme = theme.value.toLowerCase();
   checkServerStatus();
 });
@@ -387,16 +731,51 @@ onMounted(() => {
     <!-- PANNEAU DE GAUCHE -->
     <div class="pane left-pane">
       <header class="pane-header">
-        <h2>Projet CCTP</h2>
+        <div class="header-content">
+          <h2>Projet CCTP</h2>
+          <button @click="toggleTheme" class="theme-toggle-btn" title="Changer le thème">
+            {{ theme === 'Sombre' ? '☀️' : '🌙' }}
+          </button>
+        </div>
         <p v-if="serverStatus.openai_configured === false" class="warning">⚠️ Clé OpenAI non configurée</p>
       </header>
       
       <div class="form-group">
         <label for="model-select">Modèle de Projet</label>
-        <select id="model-select" @change="loadModel($event.target.value)" :disabled="isLoading">
-          <option disabled :selected="!activeModel">-- Choisir ou créer un modèle --</option>
-          <option v-for="model in models" :key="model" :value="model">{{ model }}</option>
-        </select>
+        <div class="model-selection">
+          <select id="model-select" @change="loadModel($event.target.value)" :disabled="isLoading">
+            <option disabled :selected="!activeModel">-- Choisir un modèle --</option>
+            <option v-for="model in models" :key="model" :value="model">{{ model }}</option>
+          </select>
+          <button @click="showCreateModel = true" class="accent small" title="Créer un nouveau modèle">
+            + Nouveau
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal de création de modèle -->
+      <div v-if="showCreateModel" class="modal-overlay" @click="showCreateModel = false">
+        <div class="modal-content create-model-modal" @click.stop>
+          <h3>Créer un nouveau modèle</h3>
+          <div class="form-group">
+            <label for="new-model-name">Nom du modèle :</label>
+            <input 
+              id="new-model-name" 
+              v-model="newModelName" 
+              placeholder="Ex: Projet Résidentiel 2024"
+              @keydown.enter="createNewModel"
+              :disabled="isCreatingModel"
+            />
+          </div>
+          <div class="modal-actions">
+            <button @click="showCreateModel = false" class="secondary" :disabled="isCreatingModel">
+              Annuler
+            </button>
+            <button @click="createNewModel" class="accent" :disabled="!newModelName.trim() || isCreatingModel">
+              {{ isCreatingModel ? 'Création...' : 'Créer le modèle' }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div v-if="activeModel" class="typology-section">
@@ -461,20 +840,90 @@ onMounted(() => {
         </div>
       </div>
       
+      <div class="prompt-editor-section">
+        <h3>
+          Configuration du Prompt IA
+          <button @click="togglePromptEditor" class="small" :class="{ active: showPromptEditor }">
+            {{ showPromptEditor ? '▼' : '▶' }}
+          </button>
+        </h3>
+        
+        <div v-if="showPromptEditor" class="prompt-editor-content">
+          <label>Prompt système actuel :</label>
+          <textarea 
+            v-model="systemPrompt" 
+            rows="8" 
+            placeholder="Chargement du prompt système..."
+            :disabled="isLoadingPrompt"
+            class="prompt-textarea"
+          ></textarea>
+          
+          <div class="prompt-actions">
+            <button @click="saveSystemPrompt" :disabled="isLoadingPrompt" class="accent small">
+              {{ isLoadingPrompt ? 'Sauvegarde...' : '💾 Sauvegarder' }}
+            </button>
+            <button @click="loadSystemPrompt" :disabled="isLoadingPrompt" class="small">
+              {{ isLoadingPrompt ? 'Chargement...' : '🔄 Recharger' }}
+            </button>
+            <button @click="resetPromptToDefault" :disabled="isLoadingPrompt" class="small danger">
+              🔄 Réinitialiser
+            </button>
+          </div>
+          
+          <div class="prompt-chat">
+            <label>Améliorer le prompt avec l'IA :</label>
+            <textarea 
+              v-model="promptModification" 
+              rows="3" 
+              placeholder="Décrivez les améliorations ou modifications à apporter au prompt..."
+              class="prompt-modification"
+            ></textarea>
+            <button @click="generatePromptImprovement" :disabled="isGeneratingPrompt || !promptModification.trim()" class="accent">
+              {{ isGeneratingPrompt ? 'Génération...' : '🪄 Améliorer le prompt' }}
+            </button>
+          </div>
+        </div>
+      </div>
+      
       <footer class="pane-footer">
         <button @click="saveActiveModel" :disabled="!activeModel || isLoading" class="accent">💾 Sauvegarder le projet</button>
-        <button @click="exportFile('pdf')" :disabled="!activeModel || isExporting" class="danger">{{ isExporting ? 'Export...' : 'Exporter PDF' }}</button>
-        <button @click="exportFile('docx')" :disabled="!activeModel || isExporting || !serverStatus.docx_available" class="primary">{{ isExporting ? 'Export...' : 'Exporter Word' }}</button>
-        <button @click="toggleTheme">Thème {{ theme === 'Clair' ? 'Sombre' : 'Clair' }}</button>
+        <div class="export-options">
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" v-model="includeAiNotes" />
+              Inclure les notes IA (placeholders et exemples)
+            </label>
+          </div>
+          <div class="export-buttons">
+            <button @click="exportFile('pdf')" :disabled="!activeModel || isExporting" class="danger">{{ isExporting ? 'Export...' : 'Exporter PDF' }}</button>
+            <button @click="exportFile('docx')" :disabled="!activeModel || isExporting || !serverStatus.docx_available" class="primary">{{ isExporting ? 'Export...' : 'Exporter Word' }}</button>
+          </div>
+        </div>
       </footer>
     </div>
 
     <!-- PANNEAU CENTRAL -->
     <div class="pane center-pane">
       <div v-if="activeTypology" class="editor-content">
-        <div class="form-group">
+        <div class="form-group typology-header">
           <label for="typology-name">Nom de la Typologie</label>
-          <input id="typology-name" v-model="activeTypology.nomTypologie" />
+          <div class="typology-controls">
+            <input id="typology-name" v-model="activeTypology.nomTypologie" />
+            <div class="typology-buttons">
+              <button @click="saveActiveModel" :disabled="!activeModel || isLoading" class="accent small" title="Sauvegarder cette typologie">
+                {{ isLoading ? '...' : '💾' }}
+              </button>
+              <button @click="duplicateTypology" class="primary small" title="Dupliquer cette typologie">
+                📋
+              </button>
+              <button @click="generateAllSections" class="accent small" title="Générer toutes les sections de cette typologie" :disabled="!activeTypology.sections || activeTypology.sections.length === 0">
+                🪄 Tout générer
+              </button>
+              <button @click="clearGeneratedContent" class="danger small" title="Supprimer tout le contenu généré par l'IA pour cette typologie">
+                🗑️ Tout supprimer
+              </button>
+            </div>
+          </div>
         </div>
         
         <div class="form-group search-group">
@@ -485,12 +934,39 @@ onMounted(() => {
                   {{ sectionName }}
               </li>
           </ul>
+          <div v-if="searchTerm && filteredLibrary.length === 0" class="no-results">
+            <p>Aucune section trouvée pour "{{ searchTerm }}"</p>
+            <button @click="addCustomSection(searchTerm)" class="accent small">
+              ➕ Créer la section "{{ searchTerm }}"
+            </button>
+          </div>
+          <div class="search-actions">
+            <button @click="addEmptySection()" class="primary small">
+              ➕ Ajouter une section vide
+            </button>
+          </div>
         </div>
         
         <div v-for="(section, sIndex) in activeTypology.sections" :key="sIndex" class="section-editor">
           <header class="section-header">
-            <h4>{{ chapterMap.find(c => c.nom_typo === activeTypology.nomTypologie && c.titre_section === section.titre)?.number }} {{ section.titre }}</h4>
-            <button @click="deleteSection(sIndex)" class="danger small">Supprimer</button>
+            <div class="section-title-container">
+              <h4>{{ chapterMap.find(c => c.nom_typo === activeTypology.nomTypologie && c.titre_section === section.titre)?.number }}</h4>
+              <input v-model="section.titre" 
+                     class="section-title-input" 
+                     @blur="checkAndSuggestSection(section.titre)"
+                     placeholder="Titre de la section"/>
+            </div>
+            <div class="section-controls">
+              <button v-if="!isSectionInLibrary(section.titre)" 
+                      @click="suggestAddingToLibrary(section.titre)" 
+                      class="accent small" 
+                      title="Ajouter cette section à la bibliothèque">
+                📚 Ajouter à la bibliothèque
+              </button>
+              <button @click="moveSection(sIndex, -1)" :disabled="sIndex === 0" class="small">↑</button>
+              <button @click="moveSection(sIndex, 1)" :disabled="sIndex === activeTypology.sections.length - 1" class="small">↓</button>
+              <button @click="deleteSection(sIndex)" class="danger small">Supprimer</button>
+            </div>
           </header>
           
           <label>Notes pour la génération :</label>
@@ -505,13 +981,25 @@ onMounted(() => {
             <button @click="generateSectionContent(activeTypology, section, 'correct')" :disabled="section.isGenerating" class="small">Corriger</button>
           </div>
           
-          <label>Texte CCTP (généré par IA) :</label>
-          <textarea 
-            v-if="previewsData[activeTypology.nomTypologie]"
-            v-model="previewsData[activeTypology.nomTypologie][section.titre]" 
-            rows="6"
-            class="ai-output"
-          ></textarea>
+          <div class="ai-output-section">
+            <label>Texte CCTP (généré par IA) :</label>
+            <div class="ai-textarea-container">
+              <textarea 
+                v-if="previewsData[activeTypology.nomTypologie]"
+                v-model="previewsData[activeTypology.nomTypologie][section.titre]" 
+                rows="6"
+                class="ai-output"
+              ></textarea>
+              <button 
+                @click="clearSectionContent(section.titre)" 
+                class="ai-clear-button" 
+                title="Supprimer le contenu IA de cette section"
+                v-if="previewsData[activeTypology.nomTypologie] && previewsData[activeTypology.nomTypologie][section.titre]"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       <div v-else class="welcome-message">
@@ -603,19 +1091,83 @@ body {
 }
 .left-pane { gap: 20px; }
 .center-pane { gap: 20px; }
-.right-pane { gap: 10px; }
+.right-pane { gap: 5px; }
 .pane-header {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 10px;
   margin-bottom: 10px;
+}
+.right-pane .pane-header {
+  margin-bottom: 5px;
 }
 .pane-footer {
   margin-top: auto;
   padding-top: 15px;
   border-top: 1px solid var(--border-color);
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 2fr;
   gap: 10px;
+  align-items: center;
+}
+
+.export-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- Styles pour le header avec bouton de thème --- */
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.theme-toggle-btn {
+  padding: 8px 12px;
+  background-color: var(--button-accent-bg);
+  color: var(--button-fg);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+.theme-toggle-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 /* --- Styles des Composants UI --- */
@@ -685,6 +1237,27 @@ textarea.ai-output { font-style: italic; }
 .search-results li { padding: 10px; cursor: pointer; }
 .search-results li:hover { background-color: var(--list-hover-bg); }
 
+.no-results {
+  background-color: var(--app-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  padding: 15px;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.no-results p {
+  margin: 0 0 10px 0;
+  color: var(--text-fg);
+  font-size: 0.9rem;
+}
+
+.search-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
 .section-editor {
   border: 1px solid var(--border-color);
   padding: 15px;
@@ -693,7 +1266,46 @@ textarea.ai-output { font-style: italic; }
   flex-direction: column;
   gap: 10px;
 }
-.section-header { display: flex; justify-content: space-between; align-items: center; }
+.section-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.section-title-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.section-title-container h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--header-fg);
+  min-width: 40px;
+}
+.section-title-input {
+  background-color: var(--app-bg);
+  color: var(--text-fg);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  flex: 1;
+  min-width: 200px;
+}
+.section-title-input:focus {
+  outline: none;
+  border-color: var(--button-accent-bg);
+  box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+}
+.section-controls { 
+  display: flex; 
+  gap: 5px; 
+  flex-shrink: 0;
+}
 .button-group { display: flex; gap: 5px; }
 
 .preview-content {
@@ -706,9 +1318,87 @@ textarea.ai-output { font-style: italic; }
 .preview-content h1 { font-size: 1.5rem; color: var(--header-fg); margin-top: 20px; }
 .preview-content h3 { font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
 .preview-content p { line-height: 1.6; }
-.preview-content .placeholder { color: var(--placeholder-fg); font-weight: bold; }
-.preview-content .reference { color: var(--reference-fg); font-style: italic; }
-.preview-content .cross_ref { color: var(--cross-ref-fg); font-style: italic; }
+/* .preview-content .placeholder { color: var(--placeholder-fg); font-weight: bold; } */
+/* .preview-content .reference { color: var(--reference-fg); font-style: italic; } */
+/* .preview-content .cross_ref { color: var(--cross-ref-fg); font-style: italic; } */
+
+/* --- Styles pour le groupe radio --- */
+.radio-group {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.radio-group input[type="radio"] {
+  margin-right: 5px;
+  width: auto;
+}
+
+.radio-group label {
+  margin-right: 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* --- Styles pour l'éditeur de prompt --- */
+.prompt-editor-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 15px;
+  margin-top: 15px;
+}
+
+.prompt-editor-section h3 {
+  margin: 0 0 10px 0;
+  color: var(--header-fg);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.prompt-editor-section h3 button {
+  margin-left: 10px;
+  padding: 2px 6px;
+  font-size: 0.8rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--app-bg);
+}
+
+.prompt-editor-section h3 button.active {
+  background-color: var(--button-accent-bg);
+  color: var(--button-fg);
+}
+
+.prompt-editor-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prompt-textarea {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  min-height: 150px;
+  resize: vertical;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.prompt-chat {
+  border-top: 1px solid var(--border-color);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.prompt-modification {
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
 
 /* --- Styles pour la Base de Connaissances --- */
 .knowledge-base-section {
