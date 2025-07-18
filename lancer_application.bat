@@ -41,17 +41,34 @@ IF NOT EXIST "%SCRIPT_DIR%backend\app.py" (
 )
 
 ECHO --- Lancement du serveur Backend (Python)...
+ECHO Commande executee: cd /d "%SCRIPT_DIR%backend" ^&^& call venv\Scripts\activate.bat ^&^& set FLASK_APP=app.py ^&^& python -m flask run
 START "Backend Server" cmd /k "cd /d "%SCRIPT_DIR%backend" && call venv\Scripts\activate.bat && set FLASK_APP=app.py && python -m flask run"
 
 REM --- Etape 2: Boucle d'attente active du serveur Backend ---
 ECHO --- En attente du demarrage complet du serveur Backend (port 5000)...
+ECHO (Si le serveur ne demarre pas, verifiez la fenetre Backend Server qui s'est ouverte)
+SET RETRY_COUNT=0
 :checkloop
-ECHO    Verification...
+ECHO    Verification du port 5000... (Tentative %RETRY_COUNT% / 30)
 REM La commande "netstat" verifie les connexions reseau.
 REM On cherche une ligne contenant ":5000" et l'etat "LISTENING".
 netstat -an | findstr ":5000" | findstr "LISTENING" > nul
 REM Si la commande precedente n'a rien trouve (errorlevel n'est pas 0), on attend et on recommence.
 if %errorlevel% neq 0 (
+    SET /A RETRY_COUNT+=1
+    IF %RETRY_COUNT% GEQ 30 (
+        ECHO.
+        ECHO ERREUR: Le serveur Backend n'a pas demarre apres 30 secondes !
+        ECHO Verifiez la fenetre "Backend Server" pour voir les erreurs.
+        ECHO.
+        ECHO Causes possibles:
+        ECHO - Probleme avec l'environnement virtuel Python
+        ECHO - Dependencies manquantes
+        ECHO - Port 5000 deja utilise
+        ECHO - Erreur dans app.py
+        PAUSE
+        EXIT /B 1
+    )
     timeout /t 1 /nobreak > nul
     goto checkloop
 )
@@ -75,6 +92,7 @@ IF NOT EXIST "%SCRIPT_DIR%frontend\package.json" (
 )
 
 REM --- Etape 3: Lancement du serveur Frontend maintenant que le Backend est pret ---
+ECHO Commande executee: cd /d "%SCRIPT_DIR%frontend" ^&^& npm run dev
 START "Frontend Server" cmd /k "cd /d "%SCRIPT_DIR%frontend" && npm run dev"
 
 REM --- Etape 4: Ouverture de l'application dans le navigateur ---
