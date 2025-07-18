@@ -36,9 +36,25 @@ cctp-generator-web/
 
 ## Installation et Lancement
 
-### Option 1: Lancement automatique (Windows - Recommandé)
+### Option 1: Installation et lancement automatique (Windows - Recommandé)
 
-**🚀 Pour un démarrage rapide, utilisez le script de lancement automatique :**
+**🚀 Pour un démarrage rapide :**
+
+1. **Première installation** (à faire une seule fois) :
+   - Double-cliquez sur `installer_dependances.bat`
+   - Le script vérifiera Python et Node.js et installera toutes les dépendances automatiquement
+
+2. **Lancement de l'application** :
+   - Double-cliquez sur `lancer_application.bat`
+   - L'application s'ouvrira automatiquement dans votre navigateur
+
+**⚠️ Prérequis pour l'installation automatique :**
+- Python 3.8+ installé et accessible via la commande `python`
+- Node.js 18+ installé et accessible via la commande `node`
+
+### Option 2: Installation manuelle
+
+**🔧 Si vous préférez installer manuellement :**
 
 1. **Préparer l'environnement** (première fois uniquement) :
    ```bash

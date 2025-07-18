@@ -8,9 +8,40 @@ ECHO Repertoire du script: %SCRIPT_DIR%
 ECHO Lancement du Generateur CCTP...
 ECHO.
 
-REM --- Etape 1: Lancement du serveur Backend en arriere-plan ---
+REM --- Etape 1: Verification et lancement du serveur Backend ---
+ECHO --- Verification de l'environnement Backend...
+
+REM Verification que le dossier backend existe
+IF NOT EXIST "%SCRIPT_DIR%backend" (
+    ECHO ERREUR: Le dossier backend n'existe pas !
+    ECHO Chemin recherche: %SCRIPT_DIR%backend
+    PAUSE
+    EXIT /B 1
+)
+
+REM Verification que l'environnement virtuel existe
+IF NOT EXIST "%SCRIPT_DIR%backend\venv\Scripts\activate.bat" (
+    ECHO ERREUR: L'environnement virtuel Python n'existe pas !
+    ECHO Chemin recherche: %SCRIPT_DIR%backend\venv\Scripts\activate.bat
+    ECHO.
+    ECHO Pour resoudre ce probleme:
+    ECHO 1. Ouvrez un terminal dans le dossier backend
+    ECHO 2. Executez: python -m venv venv
+    ECHO 3. Puis: venv\Scripts\activate.bat
+    ECHO 4. Et enfin: pip install -r requirements.txt
+    PAUSE
+    EXIT /B 1
+)
+
+REM Verification que app.py existe
+IF NOT EXIST "%SCRIPT_DIR%backend\app.py" (
+    ECHO ERREUR: Le fichier app.py n'existe pas dans le dossier backend !
+    PAUSE
+    EXIT /B 1
+)
+
 ECHO --- Lancement du serveur Backend (Python)...
-START "Backend Server" cmd /k "cd /d "%SCRIPT_DIR%backend" && call .\\venv\\Scripts\\activate.bat && set FLASK_APP=app.py && python -m flask run"
+START "Backend Server" cmd /k "cd /d "%SCRIPT_DIR%backend" && call venv\Scripts\activate.bat && set FLASK_APP=app.py && python -m flask run"
 
 REM --- Etape 2: Boucle d'attente active du serveur Backend ---
 ECHO --- En attente du demarrage complet du serveur Backend (port 5000)...
@@ -26,7 +57,23 @@ if %errorlevel% neq 0 (
 )
 
 ECHO.
-ECHO --- Serveur Backend detecte ! Lancement du Frontend. ---
+ECHO --- Serveur Backend detecte ! Verification et lancement du Frontend. ---
+
+REM Verification que le dossier frontend existe
+IF NOT EXIST "%SCRIPT_DIR%frontend" (
+    ECHO ERREUR: Le dossier frontend n'existe pas !
+    ECHO Chemin recherche: %SCRIPT_DIR%frontend
+    PAUSE
+    EXIT /B 1
+)
+
+REM Verification que package.json existe
+IF NOT EXIST "%SCRIPT_DIR%frontend\package.json" (
+    ECHO ERREUR: Le fichier package.json n'existe pas dans le dossier frontend !
+    PAUSE
+    EXIT /B 1
+)
+
 REM --- Etape 3: Lancement du serveur Frontend maintenant que le Backend est pret ---
 START "Frontend Server" cmd /k "cd /d "%SCRIPT_DIR%frontend" && npm run dev"
 
