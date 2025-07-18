@@ -38,39 +38,49 @@ cctp-generator-web/
 
 ### Option 1: Lancement automatique (Windows - Recommandé)
 
-**🚀 Pour un démarrage rapide, utilisez le script de lancement automatique :**
+**🚀 Pour un démarrage rapide, utilisez le processus en 2 étapes :**
 
-1. **Préparer l'environnement** (première fois uniquement) :
+#### **Étape 1 : Installation initiale (une seule fois)**
+
+1. **Installer les dépendances automatiquement** :
    ```bash
-   # Créer l'environnement virtuel Python
-   cd backend
-   python -m venv venv
-   .\venv\Scripts\activate
-   pip install -r requirements.txt
-   cd ..
-   
-   # Installer les dépendances Node.js
-   cd frontend
-   npm install
-   cd ..
+   # Double-cliquez sur le fichier ou exécutez :
+   installer_dependances.bat
    ```
+   
+   Ce script va :
+   - ✅ Créer l'environnement virtuel Python automatiquement
+   - ✅ Installer toutes les dépendances Python (Flask, etc.)
+   - ✅ Installer toutes les dépendances Node.js (Vue, Vite, etc.)
+   - ✅ Fermer automatiquement une fois terminé
+
+   **⚠️ IMPORTANT :** Cette installation peut prendre quelques minutes. La fenêtre se fermera automatiquement une fois terminée.
+
+#### **Étape 2 : Configuration de la clé API OpenAI**
 
 2. **Configurer la clé API OpenAI** :
-   - Créez une variable d'environnement système `OPENAI_API_KEY` avec votre clé
-   - Ou modifiez temporairement le script `lancer_application.bat` pour inclure votre clé
+   - **Option A (Recommandée)** : Créez une variable d'environnement système `OPENAI_API_KEY` avec votre clé
+   - **Option B** : Modifiez temporairement le script `lancer_application.bat` pour inclure votre clé :
+     ```bat
+     set OPENAI_API_KEY=votre_cle_ici
+     ```
 
-3. **Lancer l'application** :
+#### **Étape 3 : Lancement de l'application**
+
+3. **Lancer l'application** (à chaque utilisation) :
    ```bash
    # Double-cliquez sur le fichier ou exécutez :
    lancer_application.bat
    ```
 
-**Le script automatique :**
+**Le script de lancement automatique :**
 - ✅ Lance le serveur backend Python (Flask)
 - ✅ Attend que le backend soit prêt
 - ✅ Lance le serveur frontend (Vite)
 - ✅ Ouvre automatiquement l'application dans votre navigateur
 - ✅ Gère la séquence de démarrage complète
+
+**📝 Note :** Après la première installation avec `installer_dependances.bat`, vous n'aurez plus qu'à utiliser `lancer_application.bat` pour démarrer l'application.
 
 ### Option 2: Lancement manuel
 
@@ -152,9 +162,15 @@ c. **Lancez le serveur de développement :**
 - **Port 5000 occupé** : Arrêtez les autres applications Flask ou changez le port
 - **Clé API manquante** : Vérifiez que `OPENAI_API_KEY` est bien configurée
 - **Polices manquantes** : Placez les fichiers `.ttf` dans `backend/fonts/`
-- **Dépendances manquantes** : Réexécutez `pip install -r requirements.txt` et `npm install`
+- **Dépendances manquantes** : Relancez `installer_dependances.bat`
 
-### Le script lancer_application.bat ne fonctionne pas :
-- Vérifiez que Python et Node.js sont installés et dans le PATH
-- Assurez-vous que l'environnement virtuel existe (`backend/venv/`)
-- Vérifiez que les dépendances sont installées dans les deux dossiers
+### Les scripts ne fonctionnent pas :
+- **Première installation** : Utilisez d'abord `installer_dependances.bat`, puis `lancer_application.bat`
+- **Python/Node.js introuvables** : Vérifiez que Python et Node.js sont installés et dans le PATH
+- **Permissions** : Exécutez en tant qu'administrateur si nécessaire
+- **Environnement virtuel corrompu** : Supprimez le dossier `backend/venv/` et relancez `installer_dependances.bat`
+
+### Processus de démarrage :
+1. **Installation** → `installer_dependances.bat` (une seule fois)
+2. **Configuration** → Définir la clé API OpenAI
+3. **Utilisation** → `lancer_application.bat` (à chaque fois)
